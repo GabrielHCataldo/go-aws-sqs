@@ -1,10 +1,12 @@
 package sqs
 
 import (
+	"errors"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"go-aws-sqs/internal/util"
 	"go-aws-sqs/sqs/option"
 	"reflect"
+	"time"
 )
 
 func getDebugModeByOptsProducer(opts ...*option.OptionsProducer) bool {
@@ -46,10 +48,11 @@ func getMessageAttByOptsProducer(opts ...*option.OptionsProducer) (map[string]ty
 			continue
 		}
 		v := reflect.ValueOf(opt.MessageAttributes)
+		t := reflect.TypeOf(opt.MessageAttributes)
 		if util.IsZeroReflect(v) {
 			continue
 		}
-		return convertToMessageAttValue(v)
+		return convertToMessageAttValue(t, v)
 	}
 	return nil, nil
 }
@@ -76,17 +79,19 @@ func getMessageGroupIdByOptsProducer(opts ...*option.OptionsProducer) *string {
 	return nil
 }
 
-func getMessageSystemAttByOptsProducer(opts ...*option.OptionsProducer) (map[string]types.MessageSystemAttributeValue, error) {
+func getMessageSystemAttByOptsProducer(opts ...*option.OptionsProducer) (map[string]types.MessageSystemAttributeValue,
+	error) {
 	result := map[string]types.MessageSystemAttributeValue{}
 	for _, opt := range opts {
 		if opt == nil {
 			continue
 		}
 		v := reflect.ValueOf(opt.MessageSystemAttributes)
+		t := reflect.TypeOf(opt.MessageSystemAttributes)
 		if util.IsZeroReflect(v) {
 			continue
 		}
-		resultMessageAttValue, err := convertToMessageAttValue(v)
+		resultMessageAttValue, err := convertToMessageAttValue(t, v)
 		if err != nil {
 			return nil, err
 		}
@@ -103,18 +108,29 @@ func getMessageSystemAttByOptsProducer(opts ...*option.OptionsProducer) (map[str
 	return result, nil
 }
 
-func convertToMessageAttValue(v reflect.Value) (map[string]types.MessageAttributeValue, error) {
+func convertToMessageAttValue(t reflect.Type, v reflect.Value) (map[string]types.MessageAttributeValue, error) {
+	switch v.Kind() {
+	case reflect.Map:
+		return convertMapToMessageAttValue(v)
+	case reflect.Struct:
+		return convertStructToMessageAttValue(t, v)
+	default:
+		return nil, errors.New("messageAttributes or messageSystemAttributes must be map or structure")
+	}
+}
+
+func convertMapToMessageAttValue(v reflect.Value) (map[string]types.MessageAttributeValue, error) {
 	result := map[string]types.MessageAttributeValue{}
 	for _, key := range v.MapKeys() {
 		mKey := key.Convert(v.Type().Key())
 		mValue := v.MapIndex(mKey)
-		if !mKey.CanInterface() {
+		if !mKey.CanInterface() || !mValue.CanInterface() {
 			continue
 		}
 		mKeyString, err := util.ConvertToString(mKey.Interface())
 		if err != nil {
 			return nil, err
-		} else if len(mKeyString) != 0 && util.IsNilValueReflect(mValue) {
+		} else if len(mKeyString) != 0 && util.IsZeroReflect(mValue) {
 			continue
 		}
 		mValueProcessed, err := processMessageAttValue(mValue)
@@ -123,6 +139,35 @@ func convertToMessageAttValue(v reflect.Value) (map[string]types.MessageAttribut
 		}
 		if len(mKeyString) != 0 && util.IsNonZeroMessageAttValue(mValueProcessed) {
 			result[mKeyString] = *mValueProcessed
+		}
+	}
+	if len(result) == 0 {
+		return nil, nil
+	}
+	return result, nil
+}
+
+func convertStructToMessageAttValue(t reflect.Type, v reflect.Value) (map[string]types.MessageAttributeValue,
+	error) {
+	result := map[string]types.MessageAttributeValue{}
+	for i := 0; i < v.NumField(); i++ {
+		fieldValue := v.Field(i)
+		fieldStruct := t.Field(i)
+		fieldName := util.GetJsonNameByTag(fieldStruct.Tag.Get("json"))
+		if fieldName == "-" {
+			continue
+		} else if len(fieldName) == 0 {
+			fieldName = fieldStruct.Name
+		}
+		if !fieldValue.CanInterface() || util.IsZeroReflect(fieldValue) {
+			continue
+		}
+		mValueProcessed, err := processMessageAttValue(fieldValue)
+		if err != nil {
+			return nil, err
+		}
+		if len(fieldName) != 0 && util.IsNonZeroMessageAttValue(mValueProcessed) {
+			result[fieldName] = *mValueProcessed
 		}
 	}
 	if len(result) == 0 {
@@ -285,4 +330,59 @@ func getQueueNamePrefixByOptsListQueues(opts ...*option.OptionsListQueues) *stri
 		}
 	}
 	return nil
+}
+
+func getDebugModeByOptsConsumer(opts ...*option.OptionsConsumer) bool {
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		} else if opt.DebugMode {
+			return true
+		}
+	}
+	return false
+}
+
+func getMaxNumberOfMessagesByOptsConsumer(opts ...*option.OptionsConsumer) int32 {
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		} else if opt.MaxNumberOfMessages > 0 {
+			return opt.MaxNumberOfMessages
+		}
+	}
+	return 10
+}
+
+func getVisibilityTimeoutByOptsConsumer(opts ...*option.OptionsConsumer) int32 {
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		} else if opt.VisibilityTimeout.Seconds() > 0 {
+			return int32(opt.VisibilityTimeout.Seconds())
+		}
+	}
+	return 30
+}
+
+func getDelayRerunQueryByOptsConsumer(opts ...*option.OptionsConsumer) time.Duration {
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		} else if opt.DelayRerunQuery.Seconds() > 5 {
+			return opt.DelayRerunQuery
+		}
+	}
+	return 15 * time.Second
+}
+
+func getConsumerMessageTimeoutByOptsConsumer(opts ...*option.OptionsConsumer) time.Duration {
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		} else if opt.ConsumerMessageTimeout.Seconds() > 0 {
+			return opt.ConsumerMessageTimeout
+		}
+	}
+	return 10 * time.Second
 }

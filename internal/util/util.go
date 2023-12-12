@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -62,6 +63,18 @@ func GetDataType(a any) (*string, error) {
 	default:
 		return nil, nil
 	}
+}
+
+func GetJsonNameByTag(tag string) string {
+	result := ""
+	splitTag := strings.Split(tag, ",")
+	if len(splitTag) > 0 {
+		result = splitTag[0]
+	}
+	if len(result) == 0 || result == "omitempty" {
+		return ""
+	}
+	return result
 }
 
 func IsNilValueReflect(v reflect.Value) bool {

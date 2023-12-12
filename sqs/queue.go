@@ -289,6 +289,35 @@ type GetQueueAttributesInput struct {
 	AttributeNames []types.QueueAttributeName
 }
 
+// Creates a new standard or FIFO queue. You can pass one or more attributes in
+// the request. Keep the following in mind:
+//   - If you don't specify the FifoQueue attribute, Amazon SQS creates a standard
+//     queue. You can't change the queue type after you create it and you can't convert
+//     an existing standard queue into a FIFO queue. You must either create a new FIFO
+//     queue for your application or delete your existing standard queue and recreate
+//     it as a FIFO queue. For more information, see Moving From a Standard Queue to
+//     a FIFO Queue (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html#FIFO-queues-moving)
+//     in the Amazon SQS Developer Guide.
+//   - If you don't provide a value for an attribute, the queue is created with
+//     the default value for the attribute.
+//   - If you delete a queue, you must wait at least 60 seconds before creating a
+//     queue with the same name.
+//
+// To successfully create a new queue, you must provide a queue name that adheres
+// to the limits related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/limits-queues.html)
+// and is unique within the scope of your queues. After you create a queue, you
+// must wait at least one second after the queue is created to be able to use the
+// queue. To get the queue URL, use the GetQueueUrl action. GetQueueUrl requires
+// only the QueueName parameter. be aware of existing queue names:
+//   - If you provide the name of an existing queue along with the exact names and
+//     values of all the queue's attributes, CreateQueue returns the queue URL for
+//     the existing queue.
+//   - If the queue name, attribute names, or attribute values don't match an
+//     existing queue, CreateQueue returns an error.
+//
+// Cross-account permissions don't apply to this action. For more information, see
+// Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+// in the Amazon SQS Developer Guide.
 func CreateQueue(ctx context.Context, queueName string, opts ...*option.OptionsCreateQueue) (*sqs.CreateQueueOutput,
 	error) {
 	debugMode := getDebugModeByOptsCreateQueue(opts...)
@@ -311,6 +340,22 @@ func CreateQueue(ctx context.Context, queueName string, opts ...*option.OptionsC
 	return output, err
 }
 
+// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
+// see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
+// in the Amazon SQS Developer Guide. When you use queue tags, keep the following
+// guidelines in mind:
+//   - Adding more than 50 tags to a queue isn't recommended.
+//   - Tags don't have any semantic meaning. Amazon SQS interprets tags as
+//     character strings.
+//   - Tags are case-sensitive.
+//   - A new tag with a key identical to that of an existing tag overwrites the
+//     existing tag.
+//
+// For a full list of tag restrictions, see Quotas related to queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-limits.html#limits-queues)
+// in the Amazon SQS Developer Guide. Cross-account permissions don't apply to this
+// action. For more information, see Grant cross-account permissions to a role and
+// a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+// in the Amazon SQS Developer Guide.
 func TagQueue(ctx context.Context, input TagQueueInput, opts ...*option.OptionsDefault) (*sqs.TagQueueOutput, error) {
 	debugMode := getDebugModeByOptsDefault(opts...)
 	loggerInfo(debugMode, "tag queue sqs..")
@@ -331,6 +376,22 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...*option.OptionsD
 	return output, err
 }
 
+// Sets the value of one or more queue attributes. When you change a queue's
+// attributes, the change can take up to 60 seconds for most of the attributes to
+// propagate throughout the Amazon SQS system. Changes made to the
+// MessageRetentionPeriod attribute can take up to 15 minutes and will impact
+// existing messages in the queue potentially causing them to be expired and
+// deleted if the MessageRetentionPeriod is reduced below the age of existing
+// messages.
+//   - In the future, new attributes might be added. If you write code that calls
+//     this action, we recommend that you structure your code so that it can handle new
+//     attributes gracefully.
+//   - Cross-account permissions don't apply to this action. For more information,
+//     see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+//     in the Amazon SQS Developer Guide.
+//   - To remove the ability to change queue permissions, you must deny permission
+//     to the AddPermission , RemovePermission , and SetQueueAttributes actions in
+//     your IAM policy.
 func SetAttributeQueue(ctx context.Context, input SetQueueAttributesInput, opts ...*option.OptionsDefault) (
 	*sqs.SetQueueAttributesOutput, error) {
 	debugMode := getDebugModeByOptsDefault(opts...)
@@ -352,6 +413,12 @@ func SetAttributeQueue(ctx context.Context, input SetQueueAttributesInput, opts 
 	return output, err
 }
 
+// Remove cost allocation tags from the specified Amazon SQS queue. For an
+// overview, see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
+// in the Amazon SQS Developer Guide. Cross-account permissions don't apply to this
+// action. For more information, see Grant cross-account permissions to a role and
+// a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+// in the Amazon SQS Developer Guide.
 func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...*option.OptionsDefault) (*sqs.UntagQueueOutput,
 	error) {
 	debugMode := getDebugModeByOptsDefault(opts...)
@@ -373,6 +440,13 @@ func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...*option.Opti
 	return output, err
 }
 
+// Deletes available messages in a queue (including in-flight messages) specified
+// by the QueueURL parameter. When you use the PurgeQueue action, you can't
+// retrieve any messages deleted from a queue. The message deletion process takes
+// up to 60 seconds. We recommend waiting for 60 seconds regardless of your queue's
+// size. Messages sent to the queue before you call PurgeQueue might be received
+// but are deleted within the next minute. Messages sent to the queue after you
+// call PurgeQueue might be deleted while the queue is being purged.
 func PurgeQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDefault) (*sqs.PurgeQueueOutput, error) {
 	debugMode := getDebugModeByOptsDefault(opts...)
 	loggerInfo(debugMode, "purge queue sqs..")
@@ -392,6 +466,17 @@ func PurgeQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDef
 	return output, err
 }
 
+// Deletes the queue specified by the QueueUrl , regardless of the queue's
+// contents. Be careful with the DeleteQueue action: When you delete a queue, any
+// messages in the queue are no longer available. When you delete a queue, the
+// deletion process takes up to 60 seconds. Requests you send involving that queue
+// during the 60 seconds might succeed. For example, a SendMessage request might
+// succeed, but after 60 seconds the queue and the message you sent no longer
+// exist. When you delete a queue, you must wait at least 60 seconds before
+// creating a queue with the same name. Cross-account permissions don't apply to
+// this action. For more information, see Grant cross-account permissions to a
+// role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+// in the Amazon SQS Developer Guide. The delete operation uses the HTTP GET verb.
 func DeleteQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDefault) (*sqs.DeleteQueueOutput, error) {
 	debugMode := getDebugModeByOptsDefault(opts...)
 	loggerInfo(debugMode, "deleting queue sqs..")
@@ -411,6 +496,12 @@ func DeleteQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDe
 	return output, err
 }
 
+// GetQueueUrl Returns the URL of an existing Amazon SQS queue. To access a queue that belongs
+// to another AWS account, use the QueueOwnerAWSAccountId parameter to specify the
+// account ID of the queue's owner. The queue's owner must grant you permission to
+// access the queue. For more information about shared queue access, see
+// AddPermission or see Allow Developers to Write Messages to a Shared Queue (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-writing-an-sqs-policy.html#write-messages-to-shared-queue)
+// in the Amazon SQS Developer Guide.
 func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...*option.OptionsDefault) (*sqs.GetQueueUrlOutput,
 	error) {
 	debugMode := getDebugModeByOptsDefault(opts...)
@@ -432,6 +523,9 @@ func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...*option.Op
 	return output, err
 }
 
+// GetQueueAttributes Gets attributes for the specified queue.
+// To determine whether a queue is FIFO (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html)
+// you can check whether QueueName ends with the .fifo suffix.
 func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts ...*option.OptionsDefault) (
 	*sqs.GetQueueAttributesOutput, error) {
 	debugMode := getDebugModeByOptsDefault(opts...)
@@ -453,6 +547,18 @@ func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts
 	return output, err
 }
 
+// ListQueues Returns a list of your queues in the current region. The response includes a
+// maximum of 1,000 results. If you specify a value for the optional
+// QueueNamePrefix parameter, only queues with a name that begins with the
+// specified value are returned. The listQueues methods supports pagination. Set
+// parameter MaxResults in the request to specify the maximum number of results to
+// be returned in the response. If you do not set MaxResults , the response
+// includes a maximum of 1,000 results. If you set MaxResults and there are
+// additional results to display, the response includes a value for NextToken . Use
+// NextToken as a parameter in your next request to listQueues to receive the next
+// page of results. Cross-account permissions don't apply to this action. For more
+// information, see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+// in the Amazon SQS Developer Guide.
 func ListQueues(ctx context.Context, opts ...*option.OptionsListQueues) (*sqs.ListQueuesOutput, error) {
 	debugMode := getDebugModeByOptsListQueues(opts...)
 	loggerInfo(debugMode, "list queue tags sqs..")
@@ -474,6 +580,12 @@ func ListQueues(ctx context.Context, opts ...*option.OptionsListQueues) (*sqs.Li
 	return output, err
 }
 
+// ListQueueTags List all cost allocation tags added to the specified Amazon SQS queue. For an
+// overview, see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
+// in the Amazon SQS Developer Guide. Cross-account permissions don't apply to this
+// action. For more information, see Grant cross-account permissions to a role and
+// a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
+// in the Amazon SQS Developer Guide.
 func ListQueueTags(ctx context.Context, queueUrl string, opts ...*option.OptionsDefault) (
 	*sqs.ListQueueTagsOutput, error) {
 	debugMode := getDebugModeByOptsDefault(opts...)

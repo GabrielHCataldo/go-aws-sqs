@@ -8,11 +8,11 @@ type MessageAttributes map[any]any
 
 type OptionsProducer struct {
 	baseOptions
-	DelaySeconds            time.Duration     `json:"delaySeconds,omitempty"`
-	MessageAttributes       MessageAttributes `json:"messageAttributes,omitempty"`
-	MessageSystemAttributes MessageAttributes `json:"messageSystemAttributes,omitempty"`
-	MessageDeduplicationId  string            `json:"messageDeduplicationId,omitempty"`
-	MessageGroupId          string            `json:"messageGroupId,omitempty"`
+	DelaySeconds            time.Duration `json:"delaySeconds,omitempty"`
+	MessageAttributes       any           `json:"messageAttributes,omitempty"`
+	MessageSystemAttributes any           `json:"messageSystemAttributes,omitempty"`
+	MessageDeduplicationId  string        `json:"messageDeduplicationId,omitempty"`
+	MessageGroupId          string        `json:"messageGroupId,omitempty"`
 }
 
 func Producer() *OptionsProducer {
