@@ -44,7 +44,7 @@ func TestSendMessage(t *testing.T) {
 			queueUrl: os.Getenv("SQS_QUEUE_TEST"),
 			v:        getTestStruct(),
 			opts: []*option.OptionsProducer{
-				option.Producer().SetMessageAttributes(option.MessageAttribute{
+				option.Producer().SetMessageAttributes(option.MessageAttributes{
 					"int":        1,
 					"float":      12.2432,
 					"string":     "text test",
@@ -61,7 +61,7 @@ func TestSendMessage(t *testing.T) {
 			queueUrl: os.Getenv("SQS_QUEUE_TEST_FIFO"),
 			v:        getTestStruct(),
 			opts: []*option.OptionsProducer{
-				option.Producer().SetMessageAttributes(option.MessageAttribute{
+				option.Producer().SetMessageAttributes(option.MessageAttributes{
 					"int":        1,
 					"float":      12.2432,
 					"string":     "text test",
@@ -80,7 +80,7 @@ func TestSendMessage(t *testing.T) {
 			queueUrl: os.Getenv("SQS_QUEUE_TEST"),
 			v:        getTestStruct(),
 			opts: []*option.OptionsProducer{
-				option.Producer().SetMessageAttributes(option.MessageAttribute{
+				option.Producer().SetMessageAttributes(option.MessageAttributes{
 					"int":        1,
 					"float":      12.2432,
 					"string":     "text test",

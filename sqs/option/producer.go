@@ -4,15 +4,15 @@ import (
 	"time"
 )
 
-type MessageAttribute map[any]any
+type MessageAttributes map[any]any
 
 type OptionsProducer struct {
 	baseOptions
-	DelaySeconds            time.Duration    `json:"delaySeconds,omitempty"`
-	MessageAttributes       MessageAttribute `json:"messageAttributes,omitempty"`
-	MessageSystemAttributes MessageAttribute `json:"messageSystemAttributes,omitempty"`
-	MessageDeduplicationId  string           `json:"messageDeduplicationId,omitempty"`
-	MessageGroupId          string           `json:"messageGroupId,omitempty"`
+	DelaySeconds            time.Duration     `json:"delaySeconds,omitempty"`
+	MessageAttributes       MessageAttributes `json:"messageAttributes,omitempty"`
+	MessageSystemAttributes MessageAttributes `json:"messageSystemAttributes,omitempty"`
+	MessageDeduplicationId  string            `json:"messageDeduplicationId,omitempty"`
+	MessageGroupId          string            `json:"messageGroupId,omitempty"`
 }
 
 func Producer() *OptionsProducer {
@@ -23,12 +23,12 @@ func (o *OptionsProducer) SetDelaySeconds(t time.Duration) {
 	o.DelaySeconds = t
 }
 
-func (o *OptionsProducer) SetMessageAttributes(m MessageAttribute) *OptionsProducer {
+func (o *OptionsProducer) SetMessageAttributes(m MessageAttributes) *OptionsProducer {
 	o.MessageAttributes = m
 	return o
 }
 
-func (o *OptionsProducer) SetMessageSystemAttributes(m MessageAttribute) *OptionsProducer {
+func (o *OptionsProducer) SetMessageSystemAttributes(m MessageAttributes) *OptionsProducer {
 	o.MessageSystemAttributes = m
 	return o
 }
