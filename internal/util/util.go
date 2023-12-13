@@ -91,7 +91,7 @@ func IsNilValueReflect(v reflect.Value) bool {
 }
 
 func IsZeroReflect(v reflect.Value) bool {
-	return v.IsZero() || IsNilValueReflect(v) ||
+	return v.Kind() == reflect.Invalid || v.IsZero() || IsNilValueReflect(v) ||
 		(v.Kind() == reflect.Map && len(v.MapKeys()) == 0) ||
 		(v.Kind() == reflect.Struct && v.NumField() == 0) ||
 		(v.Kind() == reflect.Slice && v.Len() == 0) ||
@@ -102,6 +102,73 @@ func IsNonZeroMessageAttValue(v *types.MessageAttributeValue) bool {
 	return v != nil && v.DataType != nil &&
 		(v.StringValue != nil || len(v.StringListValues) != 0) ||
 		(v.BinaryValue != nil || len(v.BinaryListValues) != 0)
+}
+
+func ParseStringToGeneric[T any](s string, dest *T) {
+	if err := json.Unmarshal([]byte(s), dest); err == nil {
+		return
+	}
+	if i, err := strconv.Atoi(s); err == nil {
+		bodyInt, ok := any(i).(T)
+		if ok {
+			*dest = bodyInt
+			return
+		}
+	}
+	if b, err := strconv.ParseBool(s); err == nil {
+		bodyBool, ok := any(b).(T)
+		if ok {
+			*dest = bodyBool
+			return
+		}
+	}
+	if f, err := strconv.ParseFloat(s, 64); err == nil {
+		bodyFloat, ok := any(f).(T)
+		if ok {
+			*dest = bodyFloat
+			return
+		}
+	}
+	if t, err := time.Parse(time.RFC3339, s); err == nil {
+		bodyTime, ok := any(t).(T)
+		if ok {
+			*dest = bodyTime
+			return
+		}
+	}
+	bodyString, ok := any(s).(T)
+	if ok {
+		*dest = bodyString
+	}
+}
+
+func ParseMapToStruct[T any](m map[string]any, dest *T) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, dest)
+}
+
+func IsMapMessageAttributeValues(a any) bool {
+	switch a.(type) {
+	case map[string]types.MessageAttributeValue:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsValidType(a any) bool {
+	r := reflect.ValueOf(a)
+	if !IsNilValueReflect(r) && r.Kind() != reflect.Invalid {
+		return true
+	}
+	return false
+}
+
+func ConvertDurationToInt32(d time.Duration) int32 {
+	return int32(d.Seconds())
 }
 
 func convertToStringByType(a any) (string, error) {

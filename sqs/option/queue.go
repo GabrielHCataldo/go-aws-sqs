@@ -1,10 +1,10 @@
 package option
 
-type OptionsCreateQueue struct {
-	baseOptions
+type CreateQueue struct {
+	Default
 	// A map of attributes with their corresponding values. The following lists the
 	// names, descriptions, and values of the special request parameters that the
-	// CreateQueue action uses:
+	// NewCreateQueue action uses:
 	//   - DelaySeconds – The length of time, in seconds, for which the delivery of all
 	//   messages in the queue is delayed. Valid values: An integer from 0 to 900 seconds
 	//   (15 minutes). Default: 0.
@@ -95,7 +95,7 @@ type OptionsCreateQueue struct {
 	//   - Every message must have a unique MessageDeduplicationId .
 	//   - You may provide a MessageDeduplicationId explicitly.
 	//   - If you aren't able to provide a MessageDeduplicationId and you enable
-	//   ContentBasedDeduplication for your queue, Amazon SQS uses a SHA-256 hash to
+	//   ContentBasedDeduplication for your queue, Amazon SQS uses an SHA-256 hash to
 	//   generate the MessageDeduplicationId using the body of the message (but not the
 	//   attributes of the message).
 	//   - If you don't provide a MessageDeduplicationId and the queue doesn't have
@@ -145,68 +145,146 @@ type OptionsCreateQueue struct {
 	Tags map[string]string
 }
 
-type OptionsListQueues struct {
-	baseOptions
+type ListQueues struct {
+	Default
 	// Maximum number of results to include in the response. Value range is 1 to 1000.
 	// You must set MaxResults to receive a value for NextToken in the response.
-	MaxResults *int32
+	MaxResults int32
 	// Pagination token to request the next set of results.
-	NextToken *string
+	NextToken string
 	// A string to use for filtering the list results. Only those queues whose name
 	// begins with the specified string are returned. Queue URLs and names are
 	// case-sensitive.
-	QueueNamePrefix *string
+	QueueNamePrefix string
 }
 
-func CreateQueue() *OptionsCreateQueue {
-	return &OptionsCreateQueue{}
+type ListDeadLetterSourceQueues struct {
+	Default
+	// Maximum number of results to include in the response. Value range is 1 to 1000.
+	// You must set MaxResults to receive a value for NextToken in the response.
+	MaxResults int32
+	// Pagination token to request the next set of results.
+	NextToken string
 }
 
-func ListQueue() *OptionsListQueues {
-	return &OptionsListQueues{}
+func NewCreateQueue() CreateQueue {
+	return CreateQueue{}
 }
 
-func (o *OptionsCreateQueue) SetAttributes(m map[string]string) *OptionsCreateQueue {
+func NewListQueue() ListQueues {
+	return ListQueues{}
+}
+
+func NewListDeadLetterSourceQueues() ListDeadLetterSourceQueues {
+	return ListDeadLetterSourceQueues{}
+}
+
+func (o CreateQueue) SetAttributes(m map[string]string) CreateQueue {
 	o.Attributes = m
 	return o
 }
 
-func (o *OptionsCreateQueue) SetTags(m map[string]string) *OptionsCreateQueue {
+func (o CreateQueue) SetTags(m map[string]string) CreateQueue {
 	o.Tags = m
 	return o
 }
 
-func (o *OptionsCreateQueue) SetDebugMode(b bool) *OptionsCreateQueue {
+func (o CreateQueue) SetDebugMode(b bool) CreateQueue {
 	o.DebugMode = b
 	return o
 }
 
-func (o *OptionsCreateQueue) SetOptionsHttp(opt OptionsHttp) *OptionsCreateQueue {
-	o.OptionsHttp = &opt
+func (o CreateQueue) SetOptionHttp(opt Http) CreateQueue {
+	o.OptionHttp = &opt
 	return o
 }
 
-func (o *OptionsListQueues) SetDebugMode(b bool) *OptionsListQueues {
+func (o ListQueues) SetDebugMode(b bool) ListQueues {
 	o.DebugMode = b
 	return o
 }
 
-func (o *OptionsListQueues) SetOptionsHttp(opt OptionsHttp) *OptionsListQueues {
-	o.OptionsHttp = &opt
+func (o ListQueues) SetOptionHttp(opt Http) ListQueues {
+	o.OptionHttp = &opt
 	return o
 }
 
-func (o *OptionsListQueues) SetMaxResults(i int32) *OptionsListQueues {
-	o.MaxResults = &i
+func (o ListQueues) SetMaxResults(i int32) ListQueues {
+	o.MaxResults = i
 	return o
 }
 
-func (o *OptionsListQueues) SetNextToken(nextToken string) *OptionsListQueues {
-	o.NextToken = &nextToken
+func (o ListQueues) SetNextToken(nextToken string) ListQueues {
+	o.NextToken = nextToken
 	return o
 }
 
-func (o *OptionsListQueues) SetQueueNamePrefix(queueNamePrefix string) *OptionsListQueues {
-	o.QueueNamePrefix = &queueNamePrefix
+func (o ListQueues) SetQueueNamePrefix(queueNamePrefix string) ListQueues {
+	o.QueueNamePrefix = queueNamePrefix
 	return o
+}
+
+func (o ListDeadLetterSourceQueues) SetDebugMode(b bool) ListDeadLetterSourceQueues {
+	o.DebugMode = b
+	return o
+}
+
+func (o ListDeadLetterSourceQueues) SetOptionHttp(opt Http) ListDeadLetterSourceQueues {
+	o.OptionHttp = &opt
+	return o
+}
+
+func (o ListDeadLetterSourceQueues) SetMaxResults(i int32) ListDeadLetterSourceQueues {
+	o.MaxResults = i
+	return o
+}
+
+func (o ListDeadLetterSourceQueues) SetNextToken(nextToken string) ListDeadLetterSourceQueues {
+	o.NextToken = nextToken
+	return o
+}
+
+func GetCreateQueueByParams(opts []CreateQueue) CreateQueue {
+	var result CreateQueue
+	for _, opt := range opts {
+		fillDefaultFields(opt.Default, &result.Default)
+		if opt.Attributes != nil && len(opt.Attributes) > 0 {
+			result.Attributes = opt.Attributes
+		}
+		if opt.Tags != nil && len(opt.Tags) > 0 {
+			result.Tags = opt.Tags
+		}
+	}
+	return result
+}
+
+func GetListQueuesByParams(opts []ListQueues) ListQueues {
+	var result ListQueues
+	for _, opt := range opts {
+		fillDefaultFields(opt.Default, &result.Default)
+		if opt.MaxResults > 0 {
+			result.MaxResults = opt.MaxResults
+		}
+		if len(opt.NextToken) != 0 {
+			result.NextToken = opt.NextToken
+		}
+		if len(opt.QueueNamePrefix) != 0 {
+			result.QueueNamePrefix = opt.QueueNamePrefix
+		}
+	}
+	return result
+}
+
+func GetListDeadLetterSourceQueuesByParams(opts []ListDeadLetterSourceQueues) ListDeadLetterSourceQueues {
+	var result ListDeadLetterSourceQueues
+	for _, opt := range opts {
+		fillDefaultFields(opt.Default, &result.Default)
+		if opt.MaxResults > 0 {
+			result.MaxResults = opt.MaxResults
+		}
+		if len(opt.NextToken) != 0 {
+			result.NextToken = opt.NextToken
+		}
+	}
+	return result
 }

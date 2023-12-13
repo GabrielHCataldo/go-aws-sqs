@@ -2,20 +2,25 @@ package option
 
 import "time"
 
-type OptionsConsumer struct {
-	baseOptions
+type Consumer struct {
+	Default
 	// default: false
 	DeleteMessageProcessedSuccess bool
-	// default: 10 seconds
+	// default: 5 seconds
 	ConsumerMessageTimeout time.Duration
-	// default: 15 seconds
-	DelayRerunQuery time.Duration
+	// default: 5 seconds
+	DelayQueryLoop time.Duration
 	// The maximum number of messages to return. Amazon SQS never returns more
 	// messages than this value (however, fewer messages might be returned). Valid
 	// values: 1 to 10.
 	//
 	// default: 10
 	MaxNumberOfMessages int32
+	// The duration that the received messages are hidden from subsequent
+	// retrieve requests after being retrieved by a ReceiveMessage request.
+	//
+	// default: 0 seconds
+	VisibilityTimeout time.Duration
 	// This parameter applies only to FIFO (first-in-first-out) queues. The token used
 	// for deduplication of ReceiveMessage calls. If a networking issue occurs after a
 	// ReceiveMessage action, and instead of a response you receive a generic error, it
@@ -56,12 +61,7 @@ type OptionsConsumer struct {
 	// using ReceiveRequestAttemptId , see Using the ReceiveRequestAttemptId Request
 	// Parameter (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/using-receiverequestattemptid-request-parameter.html)
 	// in the Amazon SQS Developer Guide.
-	ReceiveRequestAttemptId *string
-	// The duration that the received messages are hidden from subsequent
-	// retrieve requests after being retrieved by a ReceiveMessage request.
-	//
-	// default: 30 seconds
-	VisibilityTimeout time.Duration
+	ReceiveRequestAttemptId string
 	// The duration for which the call waits for a message to arrive in
 	// the queue before returning. If a message is available, the call returns sooner
 	// than WaitTimeSeconds . If no messages are available and the wait time expires,
@@ -72,6 +72,93 @@ type OptionsConsumer struct {
 	// for asynchronous clients, or the ApacheHttpClient (https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/http/apache/ApacheHttpClient.html)
 	// for synchronous clients.
 	//
-	// default: 0
-	WaitTime time.Duration
+	// default: 0 seconds
+	WaitTimeSeconds time.Duration
+}
+
+func NewConsumer() Consumer {
+	return Consumer{}
+}
+
+func (o Consumer) SetDeleteMessageProcessedSuccess(b bool) Consumer {
+	o.DeleteMessageProcessedSuccess = b
+	return o
+}
+
+func (o Consumer) SetConsumerMessageTimeout(d time.Duration) Consumer {
+	o.ConsumerMessageTimeout = d
+	return o
+}
+
+func (o Consumer) SetMaxNumberOfMessages(i int32) Consumer {
+	o.MaxNumberOfMessages = i
+	return o
+}
+
+func (o Consumer) SetDelayQueryLoop(d time.Duration) Consumer {
+	o.DelayQueryLoop = d
+	return o
+}
+
+func (o Consumer) SetReceiveRequestAttemptId(s string) Consumer {
+	o.ReceiveRequestAttemptId = s
+	return o
+}
+
+func (o Consumer) SetVisibilityTimeout(d time.Duration) Consumer {
+	o.VisibilityTimeout = d
+	return o
+}
+
+func (o Consumer) SetWaitTimeSeconds(d time.Duration) Consumer {
+	o.WaitTimeSeconds = d
+	return o
+}
+
+func (o Consumer) SetDebugMode(b bool) Consumer {
+	o.DebugMode = b
+	return o
+}
+
+func (o Consumer) SetOptionHttp(opt Http) Consumer {
+	o.OptionHttp = &opt
+	return o
+}
+
+func GetConsumerByParams(opts []Consumer) Consumer {
+	var result Consumer
+	for _, opt := range opts {
+		fillDefaultFields(opt.Default, &result.Default)
+		if opt.DeleteMessageProcessedSuccess {
+			result.DeleteMessageProcessedSuccess = opt.DeleteMessageProcessedSuccess
+		}
+		if opt.ConsumerMessageTimeout.Seconds() > 0 {
+			result.ConsumerMessageTimeout = opt.ConsumerMessageTimeout
+		}
+		if opt.DelayQueryLoop.Seconds() > 0 {
+			result.DelayQueryLoop = opt.DelayQueryLoop
+		}
+		if opt.MaxNumberOfMessages > 0 {
+			result.MaxNumberOfMessages = opt.MaxNumberOfMessages
+		}
+		if opt.VisibilityTimeout.Seconds() > 0 {
+			result.VisibilityTimeout = opt.VisibilityTimeout
+		}
+		if len(opt.ReceiveRequestAttemptId) != 0 {
+			result.ReceiveRequestAttemptId = opt.ReceiveRequestAttemptId
+		}
+		if opt.WaitTimeSeconds.Seconds() > 0 {
+			result.WaitTimeSeconds = opt.WaitTimeSeconds
+		}
+	}
+	if result.MaxNumberOfMessages <= 0 {
+		result.MaxNumberOfMessages = 10
+	}
+	if result.ConsumerMessageTimeout.Seconds() == 0 {
+		result.ConsumerMessageTimeout = 5 * time.Second
+	}
+	if result.DelayQueryLoop.Seconds() == 0 {
+		result.DelayQueryLoop = 5 * time.Second
+	}
+	return result
 }

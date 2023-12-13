@@ -178,7 +178,7 @@ type GetQueueAttributesInput struct {
 	// parameter is optional, but if you don't specify values for this parameter, the
 	// request returns empty results. In the future, new attributes might be added. If
 	// you write code that calls this action, we recommend that you structure your code
-	// so that it can handle new attributes gracefully. The following attributes are
+	// so that it can handler new attributes gracefully. The following attributes are
 	// supported: The ApproximateNumberOfMessagesDelayed ,
 	// ApproximateNumberOfMessagesNotVisible , and ApproximateNumberOfMessages metrics
 	// may not achieve consistency until at least 1 minute after the producers stop
@@ -289,10 +289,10 @@ type GetQueueAttributesInput struct {
 	AttributeNames []types.QueueAttributeName
 }
 
-// Creates a new standard or FIFO queue. You can pass one or more attributes in
+// CreateQueue Creates a new standard or FIFO queue. You can pass one or more attributes in
 // the request. Keep the following in mind:
 //   - If you don't specify the FifoQueue attribute, Amazon SQS creates a standard
-//     queue. You can't change the queue type after you create it and you can't convert
+//     queue. You can't change the queue type after you create it, and you can't convert
 //     an existing standard queue into a FIFO queue. You must either create a new FIFO
 //     queue for your application or delete your existing standard queue and recreate
 //     it as a FIFO queue. For more information, see Moving From a Standard Queue to
@@ -318,29 +318,28 @@ type GetQueueAttributesInput struct {
 // Cross-account permissions don't apply to this action. For more information, see
 // Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func CreateQueue(ctx context.Context, queueName string, opts ...*option.OptionsCreateQueue) (*sqs.CreateQueueOutput,
+func CreateQueue(ctx context.Context, queueName string, opts ...option.CreateQueue) (*sqs.CreateQueueOutput,
 	error) {
-	debugMode := getDebugModeByOptsCreateQueue(opts...)
-	loggerInfo(debugMode, "creating queue sqs..")
-	client, err := getSqsClient(ctx)
+	opt := option.GetCreateQueueByParams(opts)
+	loggerInfo(opt.DebugMode, "creating queue sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.CreateQueue(ctx, &sqs.CreateQueueInput{
 		QueueName:  &queueName,
-		Attributes: getAttributesByOptsCreateQueue(opts...),
-		Tags:       getTagsByOptsCreateQueue(opts...),
-	}, optionsHttp(getOptionsHttpByOptsCreateQueue(opts...)))
+		Attributes: opt.Attributes,
+		Tags:       opt.Tags,
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error create queue sqs:", err)
+		loggerErr(opt.DebugMode, "error create queue sqs:", err)
 	} else {
-		loggerInfo(debugMode, "queue created successfully:", output)
+		loggerInfo(opt.DebugMode, "queue created successfully:", output)
 	}
 	return output, err
 }
 
-// Add cost allocation tags to the specified Amazon SQS queue. For an overview,
+// TagQueue Add cost allocation tags to the specified Amazon SQS queue. For an overview,
 // see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
 // in the Amazon SQS Developer Guide. When you use queue tags, keep the following
 // guidelines in mind:
@@ -356,27 +355,26 @@ func CreateQueue(ctx context.Context, queueName string, opts ...*option.OptionsC
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func TagQueue(ctx context.Context, input TagQueueInput, opts ...*option.OptionsDefault) (*sqs.TagQueueOutput, error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "tag queue sqs..")
-	client, err := getSqsClient(ctx)
+func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) (*sqs.TagQueueOutput, error) {
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "tag queue sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.TagQueue(ctx, &sqs.TagQueueInput{
 		QueueUrl: &input.QueueUrl,
 		Tags:     input.Tags,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error tag queue sqs:", err)
+		loggerErr(opt.DebugMode, "error tag queue sqs:", err)
 	} else {
-		loggerInfo(debugMode, "queue deleted successfully:", output)
+		loggerInfo(opt.DebugMode, "queue deleted successfully:", output)
 	}
 	return output, err
 }
 
-// Sets the value of one or more queue attributes. When you change a queue's
+// SetAttributeQueue Sets the value of one or more queue attributes. When you change a queue's
 // attributes, the change can take up to 60 seconds for most of the attributes to
 // propagate throughout the Amazon SQS system. Changes made to the
 // MessageRetentionPeriod attribute can take up to 15 minutes and will impact
@@ -384,7 +382,7 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...*option.OptionsD
 // deleted if the MessageRetentionPeriod is reduced below the age of existing
 // messages.
 //   - In the future, new attributes might be added. If you write code that calls
-//     this action, we recommend that you structure your code so that it can handle new
+//     this action, we recommend that you structure your code so that it can handler new
 //     attributes gracefully.
 //   - Cross-account permissions don't apply to this action. For more information,
 //     see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
@@ -392,81 +390,78 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...*option.OptionsD
 //   - To remove the ability to change queue permissions, you must deny permission
 //     to the AddPermission , RemovePermission , and SetQueueAttributes actions in
 //     your IAM policy.
-func SetAttributeQueue(ctx context.Context, input SetQueueAttributesInput, opts ...*option.OptionsDefault) (
+func SetAttributeQueue(ctx context.Context, input SetQueueAttributesInput, opts ...option.Default) (
 	*sqs.SetQueueAttributesOutput, error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "set attributes queue sqs..")
-	client, err := getSqsClient(ctx)
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "set attributes queue sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.SetQueueAttributes(ctx, &sqs.SetQueueAttributesInput{
 		QueueUrl:   &input.QueueUrl,
 		Attributes: input.Attributes,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error set attributes queue sqs:", err)
+		loggerErr(opt.DebugMode, "error set attributes queue sqs:", err)
 	} else {
-		loggerInfo(debugMode, "queue updated successfully:", output)
+		loggerInfo(opt.DebugMode, "queue updated successfully:", output)
 	}
 	return output, err
 }
 
-// Remove cost allocation tags from the specified Amazon SQS queue. For an
+// UntagQueue Remove cost allocation tags from the specified Amazon SQS queue. For an
 // overview, see Tagging Your Amazon SQS Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-tags.html)
 // in the Amazon SQS Developer Guide. Cross-account permissions don't apply to this
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...*option.OptionsDefault) (*sqs.UntagQueueOutput,
+func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...option.Default) (*sqs.UntagQueueOutput,
 	error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "untag queue sqs..")
-	client, err := getSqsClient(ctx)
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "untag queue sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.UntagQueue(ctx, &sqs.UntagQueueInput{
 		QueueUrl: input.QueueUrl,
 		TagKeys:  input.TagKeys,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error untag queue sqs:", err)
+		loggerErr(opt.DebugMode, "error untag queue sqs:", err)
 	} else {
-		loggerInfo(debugMode, "queue untagged successfully:", output)
+		loggerInfo(opt.DebugMode, "queue untagged successfully:", output)
 	}
 	return output, err
 }
 
-// Deletes available messages in a queue (including in-flight messages) specified
+// PurgeQueue Deletes available messages in a queue (including in-flight messages) specified
 // by the QueueURL parameter. When you use the PurgeQueue action, you can't
 // retrieve any messages deleted from a queue. The message deletion process takes
 // up to 60 seconds. We recommend waiting for 60 seconds regardless of your queue's
 // size. Messages sent to the queue before you call PurgeQueue might be received
 // but are deleted within the next minute. Messages sent to the queue after you
 // call PurgeQueue might be deleted while the queue is being purged.
-func PurgeQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDefault) (*sqs.PurgeQueueOutput, error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "purge queue sqs..")
-	client, err := getSqsClient(ctx)
+func PurgeQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.PurgeQueueOutput, error) {
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "purge queue sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.PurgeQueue(ctx, &sqs.PurgeQueueInput{
 		QueueUrl: &queueUrl,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error purge queue sqs:", err)
+		loggerErr(opt.DebugMode, "error purge queue sqs:", err)
 	} else {
-		loggerInfo(debugMode, "queue purged successfully:", output)
+		loggerInfo(opt.DebugMode, "queue purged successfully:", output)
 	}
 	return output, err
 }
 
-// Deletes the queue specified by the QueueUrl , regardless of the queue's
+// DeleteQueue Deletes the queue specified by the QueueUrl , regardless of the queue's
 // contents. Be careful with the DeleteQueue action: When you delete a queue, any
 // messages in the queue are no longer available. When you delete a queue, the
 // deletion process takes up to 60 seconds. Requests you send involving that queue
@@ -477,21 +472,20 @@ func PurgeQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDef
 // this action. For more information, see Grant cross-account permissions to a
 // role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide. The delete operation uses the HTTP GET verb.
-func DeleteQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDefault) (*sqs.DeleteQueueOutput, error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "deleting queue sqs..")
-	client, err := getSqsClient(ctx)
+func DeleteQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.DeleteQueueOutput, error) {
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "deleting queue sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.DeleteQueue(ctx, &sqs.DeleteQueueInput{
 		QueueUrl: &queueUrl,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error delete queue sqs:", err)
+		loggerErr(opt.DebugMode, "error delete queue sqs:", err)
 	} else {
-		loggerInfo(debugMode, "queue deleted successfully:", output)
+		loggerInfo(opt.DebugMode, "queue deleted successfully:", output)
 	}
 	return output, err
 }
@@ -502,23 +496,22 @@ func DeleteQueue(ctx context.Context, queueUrl string, opts ...*option.OptionsDe
 // access the queue. For more information about shared queue access, see
 // AddPermission or see Allow Developers to Write Messages to a Shared Queue (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-writing-an-sqs-policy.html#write-messages-to-shared-queue)
 // in the Amazon SQS Developer Guide.
-func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...*option.OptionsDefault) (*sqs.GetQueueUrlOutput,
+func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...option.Default) (*sqs.GetQueueUrlOutput,
 	error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "get queue url sqs..")
-	client, err := getSqsClient(ctx)
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "get queue url sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
 		QueueName:              &input.QueueName,
 		QueueOwnerAWSAccountId: &input.QueueOwnerAWSAccountId,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error get queue url sqs:", err)
+		loggerErr(opt.DebugMode, "error get queue url sqs:", err)
 	} else {
-		loggerInfo(debugMode, "get queue successfully:", output)
+		loggerInfo(opt.DebugMode, "get queue successfully:", output)
 	}
 	return output, err
 }
@@ -526,23 +519,22 @@ func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...*option.Op
 // GetQueueAttributes Gets attributes for the specified queue.
 // To determine whether a queue is FIFO (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html)
 // you can check whether QueueName ends with the .fifo suffix.
-func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts ...*option.OptionsDefault) (
+func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts ...option.Default) (
 	*sqs.GetQueueAttributesOutput, error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "get queue attributes sqs..")
-	client, err := getSqsClient(ctx)
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "get queue attributes sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.GetQueueAttributes(ctx, &sqs.GetQueueAttributesInput{
 		QueueUrl:       &input.QueueUrl,
 		AttributeNames: input.AttributeNames,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error queue attributes sqs:", err)
+		loggerErr(opt.DebugMode, "error queue attributes sqs:", err)
 	} else {
-		loggerInfo(debugMode, "get queue attributes successfully:", output)
+		loggerInfo(opt.DebugMode, "get queue attributes successfully:", output)
 	}
 	return output, err
 }
@@ -559,23 +551,22 @@ func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts
 // page of results. Cross-account permissions don't apply to this action. For more
 // information, see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func ListQueues(ctx context.Context, opts ...*option.OptionsListQueues) (*sqs.ListQueuesOutput, error) {
-	debugMode := getDebugModeByOptsListQueues(opts...)
-	loggerInfo(debugMode, "list queue tags sqs..")
-	client, err := getSqsClient(ctx)
+func ListQueues(ctx context.Context, opts ...option.ListQueues) (*sqs.ListQueuesOutput, error) {
+	opt := option.GetListQueuesByParams(opts)
+	loggerInfo(opt.DebugMode, "list queue tags sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.ListQueues(ctx, &sqs.ListQueuesInput{
-		MaxResults:      getMaxResultsByOptsListQueues(opts...),
-		NextToken:       getNextTokenByOptsListQueues(opts...),
-		QueueNamePrefix: getQueueNamePrefixByOptsListQueues(opts...),
-	}, optionsHttp(getOptionsHttpByOptsListQueues(opts...)))
+		MaxResults:      &opt.MaxResults,
+		NextToken:       &opt.NextToken,
+		QueueNamePrefix: &opt.QueueNamePrefix,
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error list queue tags sqs:", err)
+		loggerErr(opt.DebugMode, "error list queue tags sqs:", err)
 	} else {
-		loggerInfo(debugMode, "get queue tags successfully:", output)
+		loggerInfo(opt.DebugMode, "get queue tags successfully:", output)
 	}
 	return output, err
 }
@@ -586,22 +577,53 @@ func ListQueues(ctx context.Context, opts ...*option.OptionsListQueues) (*sqs.Li
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func ListQueueTags(ctx context.Context, queueUrl string, opts ...*option.OptionsDefault) (
+func ListQueueTags(ctx context.Context, queueUrl string, opts ...option.Default) (
 	*sqs.ListQueueTagsOutput, error) {
-	debugMode := getDebugModeByOptsDefault(opts...)
-	loggerInfo(debugMode, "list queue tags sqs..")
-	client, err := getSqsClient(ctx)
+	opt := option.GetDefaultByParams(opts)
+	loggerInfo(opt.DebugMode, "list queue tags sqs..")
+	client, err := getClient(ctx, opt.DebugMode)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
 		return nil, err
 	}
 	output, err := client.ListQueueTags(ctx, &sqs.ListQueueTagsInput{
 		QueueUrl: &queueUrl,
-	}, optionsHttp(getOptionsHttpByOptsDefault(opts...)))
+	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
-		loggerErr(debugMode, "error list queue tags sqs:", err)
+		loggerErr(opt.DebugMode, "error list queue tags sqs:", err)
 	} else {
-		loggerInfo(debugMode, "get queue tags successfully:", output)
+		loggerInfo(opt.DebugMode, "get queue tags successfully:", output)
+	}
+	return output, err
+}
+
+// ListDeadLetterSourceQueues Returns a list of your queues that have the RedrivePolicy queue attribute
+// configured with a dead-letter queue. The ListDeadLetterSourceQueues methods
+// supports pagination. Set parameter MaxResults in the request to specify the
+// maximum number of results to be returned in the response. If you do not set
+// MaxResults , the response includes a maximum of 1,000 results. If you set
+// MaxResults and there are additional results to display, the response includes a
+// value for NextToken . Use NextToken as a parameter in your next request to
+// ListDeadLetterSourceQueues to receive the next page of results. For more
+// information about using dead-letter queues, see Using Amazon SQS Dead-Letter
+// Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)
+// in the Amazon SQS Developer Guide.
+func ListDeadLetterSourceQueues(ctx context.Context, queueUrl string, opts ...option.ListDeadLetterSourceQueues) (
+	*sqs.ListDeadLetterSourceQueuesOutput, error) {
+	opt := option.GetListDeadLetterSourceQueuesByParams(opts)
+	loggerInfo(opt.DebugMode, "listing dead letter source queues..")
+	client, err := getClient(ctx, opt.DebugMode)
+	if err != nil {
+		return nil, err
+	}
+	output, err := client.ListDeadLetterSourceQueues(ctx, &sqs.ListDeadLetterSourceQueuesInput{
+		QueueUrl:   &queueUrl,
+		MaxResults: &opt.MaxResults,
+		NextToken:  &opt.NextToken,
+	}, option.FuncByOptionHttp(opt.OptionHttp))
+	if err != nil {
+		loggerErr(opt.DebugMode, "error list dead letter source queues:", err)
+	} else {
+		loggerInfo(opt.DebugMode, "list dead letter source queues successfully:", output)
 	}
 	return output, err
 }

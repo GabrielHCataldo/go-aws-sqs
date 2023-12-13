@@ -8,7 +8,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-type OptionsHttp struct {
+type Http struct {
 	// Set of options to modify how an operation is invoked. These apply to all
 	// operations invoked for this client. Use functional options on operation call to
 	// modify this list for per operation behavior.
@@ -44,14 +44,14 @@ type OptionsHttp struct {
 	// an operation that fails with a retryable error. A value of 0 is ignored, and
 	// will not be used to configure the API client created default retryer, or modify
 	// per operation call's retry max attempts. If specified in an operation call's
-	// functional options with a value that is different than the constructed client's
+	// functional options with a value that is different from the constructed client's
 	// Options, the Client's Retryer will be wrapped to use the operation's specific
 	// RetryMaxAttempts value.
 	RetryMaxAttempts int
 	// RetryMode specifies the retry mode the API client will be created with, if
 	// Retryer option is not also specified. When creating a new API Clients this
 	// member will only be used if the Retryer Options member is nil. This value will
-	// be ignored if Retryer is not nil. Currently does not support per operation call
+	// be ignored if Retryer is not nil. Currently, does not support per operation call
 	// overrides, may in the future.
 	RetryMode aws.RetryMode
 	// Retryer guides how HTTP requests should be retried in case of recoverable
@@ -77,4 +77,33 @@ type OptionsHttp struct {
 	AuthSchemeResolver sqs.AuthSchemeResolver
 	// The list of auth schemes supported by the client.
 	AuthSchemes []smithyhttp.AuthScheme
+}
+
+func FuncByOptionHttp(opt *Http) func(options *sqs.Options) {
+	return func(options *sqs.Options) {
+		if opt == nil {
+			return
+		}
+		options = &sqs.Options{
+			APIOptions:                       opt.APIOptions,
+			AppID:                            opt.AppID,
+			BaseEndpoint:                     opt.BaseEndpoint,
+			ClientLogMode:                    opt.ClientLogMode,
+			Credentials:                      opt.Credentials,
+			DefaultsMode:                     opt.DefaultsMode,
+			DisableMessageChecksumValidation: opt.DisableMessageChecksumValidation,
+			EndpointOptions:                  opt.EndpointOptions,
+			EndpointResolverV2:               opt.EndpointResolverV2,
+			HTTPSignerV4:                     opt.HTTPSignerV4,
+			Logger:                           opt.Logger,
+			Region:                           opt.Region,
+			RetryMaxAttempts:                 opt.RetryMaxAttempts,
+			RetryMode:                        opt.RetryMode,
+			Retryer:                          opt.Retryer,
+			RuntimeEnvironment:               opt.RuntimeEnvironment,
+			HTTPClient:                       opt.HTTPClient,
+			AuthSchemeResolver:               opt.AuthSchemeResolver,
+			AuthSchemes:                      opt.AuthSchemes,
+		}
+	}
 }

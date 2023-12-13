@@ -11,22 +11,22 @@ func TestListQueues(t *testing.T) {
 	testCases := []struct {
 		name    string
 		ctx     context.Context
-		opts    []*option.OptionsListQueues
+		opts    []option.ListQueues
 		wantErr bool
 	}{
 		{
 			name:    "success",
 			ctx:     context.TODO(),
 			wantErr: false,
-			opts: []*option.OptionsListQueues{
-				option.ListQueue().SetDebugMode(true),
+			opts: []option.ListQueues{
+				option.NewListQueue().SetDebugMode(true),
 			},
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := ListQueues(tt.ctx, nil, option.ListQueue().SetDebugMode(true).SetMaxResults(2))
+			_, err := ListQueues(tt.ctx, tt.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListQueues() error = %v, wantErr %v", err, tt.wantErr)
 			}

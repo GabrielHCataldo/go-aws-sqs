@@ -1,13 +1,12 @@
 package option
 
 import (
+	"go-aws-sqs/internal/util"
 	"time"
 )
 
-type MessageAttributes map[any]any
-
-type OptionsProducer struct {
-	baseOptions
+type Producer struct {
+	Default
 	DelaySeconds            time.Duration `json:"delaySeconds,omitempty"`
 	MessageAttributes       any           `json:"messageAttributes,omitempty"`
 	MessageSystemAttributes any           `json:"messageSystemAttributes,omitempty"`
@@ -15,40 +14,64 @@ type OptionsProducer struct {
 	MessageGroupId          string        `json:"messageGroupId,omitempty"`
 }
 
-func Producer() *OptionsProducer {
-	return &OptionsProducer{}
+func NewProducer() Producer {
+	return Producer{}
 }
 
-func (o *OptionsProducer) SetDelaySeconds(t time.Duration) {
+func (o Producer) SetDelaySeconds(t time.Duration) Producer {
 	o.DelaySeconds = t
+	return o
 }
 
-func (o *OptionsProducer) SetMessageAttributes(m MessageAttributes) *OptionsProducer {
+func (o Producer) SetMessageAttributes(m any) Producer {
 	o.MessageAttributes = m
 	return o
 }
 
-func (o *OptionsProducer) SetMessageSystemAttributes(m MessageAttributes) *OptionsProducer {
+func (o Producer) SetMessageSystemAttributes(m any) Producer {
 	o.MessageSystemAttributes = m
 	return o
 }
 
-func (o *OptionsProducer) SetMessageDeduplicationId(s string) *OptionsProducer {
+func (o Producer) SetMessageDeduplicationId(s string) Producer {
 	o.MessageDeduplicationId = s
 	return o
 }
 
-func (o *OptionsProducer) SetMessageGroupId(s string) *OptionsProducer {
+func (o Producer) SetMessageGroupId(s string) Producer {
 	o.MessageGroupId = s
 	return o
 }
 
-func (o *OptionsProducer) SetDebugMode(b bool) *OptionsProducer {
+func (o Producer) SetDebugMode(b bool) Producer {
 	o.DebugMode = b
 	return o
 }
 
-func (o *OptionsProducer) SetOptionsHttp(opt OptionsHttp) *OptionsProducer {
-	o.OptionsHttp = &opt
+func (o Producer) SetOptionHttp(opt Http) Producer {
+	o.OptionHttp = &opt
 	return o
+}
+
+func GetProducerByParams(opts []Producer) Producer {
+	var result Producer
+	for _, opt := range opts {
+		fillDefaultFields(opt.Default, &result.Default)
+		if opt.DelaySeconds > 0 {
+			result.DelaySeconds = opt.DelaySeconds
+		}
+		if util.IsValidType(opt.MessageAttributes) {
+			result.MessageAttributes = opt.MessageAttributes
+		}
+		if util.IsValidType(opt.MessageSystemAttributes) {
+			result.MessageSystemAttributes = opt.MessageSystemAttributes
+		}
+		if len(opt.MessageDeduplicationId) != 0 {
+			result.MessageDeduplicationId = opt.MessageDeduplicationId
+		}
+		if len(opt.MessageGroupId) != 0 {
+			result.MessageGroupId = opt.MessageGroupId
+		}
+	}
+	return result
 }

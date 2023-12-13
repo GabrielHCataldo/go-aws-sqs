@@ -2,4 +2,5 @@ package sqs
 
 import "errors"
 
-var ErrMessageEmpty = errors.New("sqs: no message body passed")
+var ErrMessageBodyEmpty = errors.New("sqs: no message body passed")
+var ErrParseBody = errors.New("sqs: message parse body failed")
