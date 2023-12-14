@@ -16,10 +16,11 @@ func TestCreateQueue(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateQueue() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			} else if output != nil && output.QueueUrl != nil {
+				_ = os.Setenv(SqsQueueCreateTestName, tt.queueName)
+				_ = os.Setenv(SqsQueueCreateTestUrl, *output.QueueUrl)
+				deleteQueueCreateTest()
 			}
-			_ = os.Setenv(SqsQueueCreateTestName, tt.queueName)
-			_ = os.Setenv(SqsQueueCreateTestUrl, *output.QueueUrl)
-			deleteQueueCreateTest()
 		})
 	}
 }
@@ -81,6 +82,7 @@ func TestUntagQueue(t *testing.T) {
 }
 
 func TestPurgeQueue(t *testing.T) {
+	initQueueCreateTest()
 	for _, tt := range initListTestPurgeQueue() {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)

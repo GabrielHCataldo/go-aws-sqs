@@ -5,7 +5,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"go-aws-sqs/internal/client"
+	"go-aws-sqs/internal/util"
 	"go-aws-sqs/sqs/option"
+	"time"
 )
 
 type DeleteMessageBatchInput struct {
@@ -44,12 +46,12 @@ type ChangeMessageVisibilityInput struct {
 	// changed. This parameter is returned by the ReceiveMessage action.
 	//
 	// This member is required.
-	ReceiptHandle *string
+	ReceiptHandle string
 	// The new value for the message's visibility timeout (in seconds). Values range: 0
 	// to 43200 . Maximum: 12 hours.
 	//
 	// This member is required.
-	VisibilityTimeout int32
+	VisibilityTimeout time.Duration
 }
 
 type ChangeMessageVisibilityBatchInput struct {
@@ -205,9 +207,9 @@ func ChangeMessageVisibility(ctx context.Context, input ChangeMessageVisibilityI
 	loggerInfo(opt.DebugMode, "changing messages visibility..")
 	sqsClient := client.GetClient(ctx)
 	output, err := sqsClient.ChangeMessageVisibility(ctx, &sqs.ChangeMessageVisibilityInput{
-		QueueUrl:          input.ReceiptHandle,
-		ReceiptHandle:     input.ReceiptHandle,
-		VisibilityTimeout: input.VisibilityTimeout,
+		QueueUrl:          &input.QueueUrl,
+		ReceiptHandle:     &input.ReceiptHandle,
+		VisibilityTimeout: util.ConvertDurationToInt32(input.VisibilityTimeout),
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error charge message visibility:", err)
@@ -331,9 +333,6 @@ func ListMessageMoveTasks(ctx context.Context, sourceArn string, opts ...option.
 func prepareEntriesDeleteMessageBatch(entries []DeleteMessageBatchRequestEntry) []types.DeleteMessageBatchRequestEntry {
 	var result []types.DeleteMessageBatchRequestEntry
 	for _, v := range entries {
-		if len(v.Id) == 0 && len(v.ReceiptHandle) == 0 {
-			continue
-		}
 		rEntry := types.DeleteMessageBatchRequestEntry{
 			Id:            nil,
 			ReceiptHandle: nil,
@@ -354,9 +353,6 @@ func prepareEntriesChangeMessageVisibilityBatch(
 ) []types.ChangeMessageVisibilityBatchRequestEntry {
 	var result []types.ChangeMessageVisibilityBatchRequestEntry
 	for _, v := range entries {
-		if len(v.Id) == 0 && len(v.ReceiptHandle) == 0 {
-			continue
-		}
 		rEntry := types.ChangeMessageVisibilityBatchRequestEntry{
 			Id:            nil,
 			ReceiptHandle: nil,

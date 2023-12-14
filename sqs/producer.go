@@ -33,8 +33,7 @@ import (
 // Returns:
 // - *sqs.SendMessageOutput: The result of the SendMessage operation.
 // - error: An error if one occurs during the SendMessage operation.
-func SendMessage(ctx context.Context, queueUrl string, v any, opts ...option.Producer) (
-	*sqs.SendMessageOutput, error) {
+func SendMessage(ctx context.Context, queueUrl string, v any, opts ...option.Producer) (*sqs.SendMessageOutput, error) {
 	opt := option.GetProducerByParams(opts)
 	loggerInfo(opt.DebugMode, "getting client sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -99,8 +98,15 @@ func prepareMessageInput(queueUrl string, v any, opt option.Producer) (*sqs.Send
 }
 
 func getMessageAttValueByOpt(opt option.Producer) (map[string]types.MessageAttributeValue, error) {
+	if opt.MessageAttributes == nil {
+		return nil, nil
+	}
 	v := reflect.ValueOf(opt.MessageAttributes)
 	t := reflect.TypeOf(opt.MessageAttributes)
+	if t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface {
+		v = v.Elem()
+		t = t.Elem()
+	}
 	if util.IsZeroReflect(v) {
 		return nil, nil
 	}
@@ -148,9 +154,6 @@ func convertMapToMessageAttValue(v reflect.Value) (map[string]types.MessageAttri
 			result[mKeyString] = *mValueProcessed
 		}
 	}
-	if len(result) == 0 {
-		return nil, nil
-	}
 	return result, nil
 }
 
@@ -172,9 +175,6 @@ func convertStructToMessageAttValue(t reflect.Type, v reflect.Value) (map[string
 		if len(fieldName) != 0 && util.IsNonZeroMessageAttValue(valueConverted) {
 			result[fieldName] = *valueConverted
 		}
-	}
-	if len(result) == 0 {
-		return nil, nil
 	}
 	return result, nil
 }

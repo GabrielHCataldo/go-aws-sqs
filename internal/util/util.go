@@ -1,8 +1,6 @@
 package util
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
@@ -29,22 +27,6 @@ func ConvertToString(a any) string {
 		return string(b)
 	default:
 		return convertToStringByType(a)
-	}
-}
-
-func ConvertToBytes(a any) ([]byte, error) {
-	if a == nil {
-		return nil, nil
-	}
-	t := reflect.TypeOf(a)
-	switch t.Kind() {
-	case reflect.Struct, reflect.Map, reflect.Slice, reflect.Array, reflect.Interface:
-		return json.Marshal(a)
-	default:
-		var buffer bytes.Buffer
-		enc := gob.NewEncoder(&buffer)
-		err := enc.Encode(a)
-		return buffer.Bytes(), err
 	}
 }
 

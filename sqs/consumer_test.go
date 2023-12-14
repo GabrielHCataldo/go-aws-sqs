@@ -14,7 +14,7 @@ func TestReceiveMessage(t *testing.T) {
 					t.Errorf("ReceiveMessage() error = %v, wantErr %v", r, tt.wantErr)
 				}
 			}()
-			initMessageString(tt.queueUrl)
+			initMessageString()
 			initMessageStruct(tt.queueUrl)
 			d := 5 * time.Second
 			if tt.name == "failed" {
@@ -43,7 +43,7 @@ func TestSimpleReceiveMessage(t *testing.T) {
 					t.Errorf("SimpleReceiveMessage() error = %v, wantErr %v", r, tt.wantErr)
 				}
 			}()
-			initMessageString(tt.queueUrl)
+			initMessageString()
 			initMessageStruct(tt.queueUrl)
 			d := 5 * time.Second
 			if tt.name == "failed" {
