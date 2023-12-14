@@ -61,7 +61,7 @@ type Consumer struct {
 	// using ReceiveRequestAttemptId , see Using the ReceiveRequestAttemptId Request
 	// Parameter (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/using-receiverequestattemptid-request-parameter.html)
 	// in the Amazon SQS Developer Guide.
-	ReceiveRequestAttemptId string
+	ReceiveRequestAttemptId *string
 	// The duration for which the call waits for a message to arrive in
 	// the queue before returning. If a message is available, the call returns sooner
 	// than WaitTimeSeconds . If no messages are available and the wait time expires,
@@ -101,7 +101,7 @@ func (o Consumer) SetDelayQueryLoop(d time.Duration) Consumer {
 }
 
 func (o Consumer) SetReceiveRequestAttemptId(s string) Consumer {
-	o.ReceiveRequestAttemptId = s
+	o.ReceiveRequestAttemptId = &s
 	return o
 }
 
@@ -144,7 +144,7 @@ func GetConsumerByParams(opts []Consumer) Consumer {
 		if opt.VisibilityTimeout.Seconds() > 0 {
 			result.VisibilityTimeout = opt.VisibilityTimeout
 		}
-		if len(opt.ReceiveRequestAttemptId) != 0 {
+		if opt.ReceiveRequestAttemptId != nil && len(*opt.ReceiveRequestAttemptId) != 0 {
 			result.ReceiveRequestAttemptId = opt.ReceiveRequestAttemptId
 		}
 		if opt.WaitTimeSeconds.Seconds() > 0 {

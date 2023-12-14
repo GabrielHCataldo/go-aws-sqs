@@ -10,7 +10,7 @@ import (
 
 type Http struct {
 	// Set of options to modify how an operation is invoked. These apply to all
-	// operations invoked for this client. Use functional options on operation call to
+	// operations invoked for this sqsClient. Use functional options on operation call to
 	// modify this list for per operation behavior.
 	APIOptions []func(*middleware.Stack) error
 	// The optional application specific identifier appended to the User-Agent header.
@@ -75,7 +75,7 @@ type Http struct {
 	// The auth scheme resolver which determines how to authenticate for each
 	// operation.
 	AuthSchemeResolver sqs.AuthSchemeResolver
-	// The list of auth schemes supported by the client.
+	// The list of auth schemes supported by the sqsClient.
 	AuthSchemes []smithyhttp.AuthScheme
 }
 

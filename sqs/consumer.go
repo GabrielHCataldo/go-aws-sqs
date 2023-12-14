@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"go-aws-sqs/internal/client"
 	"go-aws-sqs/internal/util"
 	"go-aws-sqs/sqs/option"
 	"reflect"
-	"strconv"
 	"time"
 )
 
@@ -21,14 +21,8 @@ type MessageReceived[Body, MessageAttributes any] struct {
 	// you provide the last received receipt handler to delete the message.
 	ReceiptHandle string
 	// The message's contents (not URL-encoded).
-	Body                             Body
-	ApproximateReceiveCount          *int
-	ApproximateFirstReceiveTimestamp *time.Time
-	MessageDeduplicationId           *string
-	MessageGroupId                   *string
-	SenderId                         *string
-	SentTimestamp                    *time.Time
-	SequenceNumber                   *int
+	Body       Body
+	Attributes Attributes
 	// An MD5 digest of the non-URL-encoded message body string.
 	MD5OfBody string
 	// An MD5 digest of the non-URL-encoded message attribute string. You can use this
@@ -42,6 +36,16 @@ type MessageReceived[Body, MessageAttributes any] struct {
 	MessageAttributes MessageAttributes
 }
 
+type Attributes struct {
+	ApproximateReceiveCount          int
+	ApproximateFirstReceiveTimestamp time.Time
+	MessageDeduplicationId           string
+	MessageGroupId                   string
+	SenderId                         string
+	SentTimestamp                    time.Time
+	SequenceNumber                   int
+}
+
 type Context[Body, MessageAttributes any] struct {
 	context.Context
 	QueueUrl string
@@ -53,7 +57,7 @@ type SimpleContext[Body any] Context[Body, map[string]types.MessageAttributeValu
 type HandlerConsumerFunc[Body, MessageAttributes any] func(ctx *Context[Body, MessageAttributes]) error
 type HandlerSimpleConsumerFunc[Body any] func(ctx *SimpleContext[Body]) error
 
-var ctxUnitTest context.Context
+var ctxInterrupt context.Context
 
 func ReceiveMessage[Body, MessageAttributes any](
 	queueUrl string,
@@ -95,15 +99,12 @@ func receiveMessage[Body, MessageAttributes any](
 	opt option.Consumer,
 ) {
 	ctx := context.TODO()
-	if ctxUnitTest != nil {
-		ctx = ctxUnitTest
+	if ctxInterrupt != nil {
+		ctx = ctxInterrupt
 	}
 	ctxClient, cancelCtxClient := context.WithTimeout(ctx, 5*time.Second)
 	defer cancelCtxClient()
-	client, err := getClient(ctxClient, false)
-	if err != nil {
-		panic(err)
-	}
+	sqsClient := client.GetClient(ctxClient)
 	input := prepareReceiveMessageInput(queueUrl, opt)
 	attemptsReceiveMessages := 0
 	printLogInitial(opt)
@@ -111,7 +112,7 @@ func receiveMessage[Body, MessageAttributes any](
 		if ctx.Err() != nil {
 			break
 		}
-		output, err := client.ReceiveMessage(ctx, &input)
+		output, err := sqsClient.ReceiveMessage(ctx, &input)
 		if err != nil {
 			handleError(&attemptsReceiveMessages, err, opt)
 			continue
@@ -122,12 +123,7 @@ func receiveMessage[Body, MessageAttributes any](
 			continue
 		}
 		loggerInfo(opt.DebugMode, "Start process received messages size:", len(output.Messages))
-		signal := make(chan struct{}, 1)
-		go processMessages[Body, MessageAttributes](queueUrl, *output, handler, opt, &signal)
-		select {
-		case <-signal:
-			time.Sleep(opt.DelayQueryLoop)
-		}
+		processMessages[Body, MessageAttributes](queueUrl, output, handler, opt)
 	}
 }
 
@@ -139,7 +135,7 @@ func prepareReceiveMessageInput(queueUrl string, opt option.Consumer) sqs.Receiv
 		MessageAttributeNames: []string{
 			string(types.QueueAttributeNameAll),
 		},
-		ReceiveRequestAttemptId: &opt.ReceiveRequestAttemptId,
+		ReceiveRequestAttemptId: opt.ReceiveRequestAttemptId,
 		VisibilityTimeout:       util.ConvertDurationToInt32(opt.VisibilityTimeout),
 		WaitTimeSeconds:         util.ConvertDurationToInt32(opt.WaitTimeSeconds),
 	}
@@ -161,17 +157,16 @@ func handleError(attemptsReceiveMessages *int, err error, opt option.Consumer) {
 
 func processMessages[Body, MessageAttributes any](
 	queueUrl string,
-	output sqs.ReceiveMessageOutput,
+	output *sqs.ReceiveMessageOutput,
 	handler HandlerConsumerFunc[Body, MessageAttributes],
 	opt option.Consumer,
-	signal *chan struct{},
 ) {
 	ctx, cancel := context.WithTimeout(context.TODO(), opt.ConsumerMessageTimeout)
 	defer cancel()
 	var count int
 	var mgsS, mgsF []string
 	for _, message := range output.Messages {
-		nCtx, err := prepareContextConsumer[Body, MessageAttributes](ctx, queueUrl, message)
+		nCtx, err := prepareContextConsumer[Body, MessageAttributes](ctx, queueUrl, message, opt)
 		if err != nil {
 			loggerErr(opt.DebugMode, "error prepare context to consumer:", err)
 			return
@@ -179,18 +174,18 @@ func processMessages[Body, MessageAttributes any](
 		err = handler(nCtx)
 		appendMessagesByResult(nCtx.Message.Id, err, mgsS, mgsF)
 		if opt.DeleteMessageProcessedSuccess {
-			go deleteMessage(queueUrl, *message.ReceiptHandle, opt)
+			go deleteMessage(queueUrl, *message.ReceiptHandle)
 		}
 		count++
 	}
 	loggerInfo(opt.DebugMode, "Finish process messages!", "processed:", count, "success:", mgsS, "failed:", mgsF)
-	*signal <- struct{}{}
 }
 
 func prepareContextConsumer[Body, MessageAttributes any](
 	ctx context.Context,
 	queueUrl string,
 	message types.Message,
+	opt option.Consumer,
 ) (*Context[Body, MessageAttributes], error) {
 	ctxConsumer := &Context[Body, MessageAttributes]{
 		Context:  ctx,
@@ -216,12 +211,8 @@ func prepareContextConsumer[Body, MessageAttributes any](
 			if util.IsMapMessageAttributeValues(messagesAttributes) {
 				messageReceived.MessageAttributes = any(message.MessageAttributes).(MessageAttributes)
 			} else {
-				err := convertMessageAttributes[MessageAttributes](message.MessageAttributes, &messagesAttributes)
-				if err != nil {
-					return nil, err
-				} else if !util.IsZeroReflect(reflect.ValueOf(messagesAttributes)) {
-					messageReceived.MessageAttributes = messagesAttributes
-				}
+				convertMessageAttributes[MessageAttributes](message.MessageAttributes, &messagesAttributes, opt)
+				messageReceived.MessageAttributes = messagesAttributes
 			}
 		}
 	}
@@ -238,73 +229,32 @@ func appendMessagesByResult(messageId string, err error, mgsS, mgsF []string) {
 	}
 }
 
-func convertMessageAttributes[T any](messageAttributes map[string]types.MessageAttributeValue, dest *T) error {
+func convertMessageAttributes[T any](messageAttributes map[string]types.MessageAttributeValue, dest *T, opt option.Consumer) {
 	m := map[string]any{}
 	for k, v := range messageAttributes {
 		var valueProcessed any
 		valueString := v.StringValue
-		if len(v.BinaryValue) > 0 {
-			bs := string(v.BinaryValue)
-			valueString = &bs
-		}
-		if valueString == nil || len(*valueString) == 0 {
-			continue
-		}
 		util.ParseStringToGeneric(*valueString, &valueProcessed)
 		if valueProcessed != nil {
 			m[k] = valueProcessed
 		}
 	}
-	if len(m) == 0 {
-		return nil
-	}
-	return util.ParseMapToStruct[T](m, dest)
+	_ = util.ParseMapToStruct[T](m, dest)
 }
 
 func fillAttributes[Body, MessageAttributes any](
 	message types.Message,
 	messageReceived *MessageReceived[Body, MessageAttributes],
 ) {
+	m := map[string]any{}
 	for k, v := range message.Attributes {
-		if len(v) == 0 {
-			continue
-		}
-		switch k {
-		case "ApproximateReceiveCount":
-			i, err := strconv.Atoi(v)
-			if err == nil && i > 0 {
-				messageReceived.ApproximateReceiveCount = &i
-			}
-			break
-		case "ApproximateFirstReceiveTimestamp":
-			t, err := time.Parse(time.RFC3339, v)
-			if err == nil {
-				messageReceived.ApproximateFirstReceiveTimestamp = &t
-			}
-			break
-		case "MessageDeduplicationId":
-			messageReceived.MessageDeduplicationId = &v
-			break
-		case "MessageGroupId":
-			messageReceived.MessageGroupId = &v
-			break
-		case "SenderId":
-			messageReceived.SenderId = &v
-			break
-		case "SentTimestamp":
-			t, err := time.Parse(time.RFC3339, v)
-			if err == nil {
-				messageReceived.SentTimestamp = &t
-			}
-			break
-		case "SequenceNumber":
-			i, err := strconv.Atoi(v)
-			if err == nil && i > 0 {
-				messageReceived.SequenceNumber = &i
-			}
-			break
+		var valueProcessed any
+		util.ParseStringToGeneric(v, &valueProcessed)
+		if valueProcessed != nil {
+			m[k] = valueProcessed
 		}
 	}
+	_ = util.ParseMapToStruct[Attributes](m, &messageReceived.Attributes)
 }
 
 func initHandleConsumerFunc[Body any, MessageAttributes map[string]types.MessageAttributeValue](
@@ -322,28 +272,19 @@ func parseContextToSimpleContext[Body any, MessageAttributes map[string]types.Me
 		Context:  ctx.Context,
 		QueueUrl: ctx.QueueUrl,
 		Message: MessageReceived[Body, map[string]types.MessageAttributeValue]{
-			Id:                               ctx.Message.Id,
-			ReceiptHandle:                    ctx.Message.ReceiptHandle,
-			Body:                             ctx.Message.Body,
-			ApproximateReceiveCount:          ctx.Message.ApproximateReceiveCount,
-			ApproximateFirstReceiveTimestamp: ctx.Message.ApproximateFirstReceiveTimestamp,
-			MessageDeduplicationId:           ctx.Message.MessageDeduplicationId,
-			MessageGroupId:                   ctx.Message.MessageGroupId,
-			SenderId:                         ctx.Message.SenderId,
-			SentTimestamp:                    ctx.Message.SentTimestamp,
-			SequenceNumber:                   ctx.Message.SequenceNumber,
-			MD5OfBody:                        ctx.Message.MD5OfBody,
-			MD5OfMessageAttributes:           ctx.Message.MD5OfMessageAttributes,
-			MessageAttributes:                ctx.Message.MessageAttributes,
+			Id:                     ctx.Message.Id,
+			ReceiptHandle:          ctx.Message.ReceiptHandle,
+			Body:                   ctx.Message.Body,
+			Attributes:             ctx.Message.Attributes,
+			MD5OfBody:              ctx.Message.MD5OfBody,
+			MD5OfMessageAttributes: ctx.Message.MD5OfMessageAttributes,
+			MessageAttributes:      ctx.Message.MessageAttributes,
 		},
 	}
 }
 
-func deleteMessage(queueUrl, receiptHandle string, opt option.Consumer) {
+func deleteMessage(queueUrl, receiptHandle string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	_, err := DeleteMessage(ctx, queueUrl, receiptHandle)
-	if err != nil {
-		loggerErr(opt.DebugMode, "error auto delete message processed success:", err)
-	}
+	_, _ = DeleteMessage(ctx, queueUrl, receiptHandle)
 }

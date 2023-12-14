@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"go-aws-sqs/internal/client"
 	"go-aws-sqs/sqs/option"
 )
 
@@ -122,11 +123,8 @@ func DeleteMessage(ctx context.Context, queueUrl, receiptHandle string, opts ...
 	*sqs.DeleteMessageOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "deleting message..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.DeleteMessage(ctx, &sqs.DeleteMessageInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.DeleteMessage(ctx, &sqs.DeleteMessageInput{
 		QueueUrl:      &queueUrl,
 		ReceiptHandle: &receiptHandle,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
@@ -147,11 +145,8 @@ func DeleteMessageBatch(ctx context.Context, input DeleteMessageBatchInput, opts
 	*sqs.DeleteMessageBatchOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "deleting messages batch..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.DeleteMessageBatch(ctx, &sqs.DeleteMessageBatchInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.DeleteMessageBatch(ctx, &sqs.DeleteMessageBatchInput{
 		Entries:  prepareEntriesDeleteMessageBatch(input.Entries),
 		QueueUrl: &input.QueueUrl,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
@@ -208,11 +203,8 @@ func ChangeMessageVisibility(ctx context.Context, input ChangeMessageVisibilityI
 	*sqs.ChangeMessageVisibilityOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "changing messages visibility..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.ChangeMessageVisibility(ctx, &sqs.ChangeMessageVisibilityInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.ChangeMessageVisibility(ctx, &sqs.ChangeMessageVisibilityInput{
 		QueueUrl:          input.ReceiptHandle,
 		ReceiptHandle:     input.ReceiptHandle,
 		VisibilityTimeout: input.VisibilityTimeout,
@@ -236,11 +228,8 @@ func ChangeMessageVisibilityBatch(ctx context.Context, input ChangeMessageVisibi
 	*sqs.ChangeMessageVisibilityBatchOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "changing message visibility batch..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.ChangeMessageVisibilityBatch(ctx, &sqs.ChangeMessageVisibilityBatchInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.ChangeMessageVisibilityBatch(ctx, &sqs.ChangeMessageVisibilityBatchInput{
 		Entries:  prepareEntriesChangeMessageVisibilityBatch(input.Entries),
 		QueueUrl: &input.QueueUrl,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
@@ -270,11 +259,8 @@ func StartMessageMoveTask(ctx context.Context, input StartMessageMoveTaskInput, 
 	*sqs.StartMessageMoveTaskOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "starting message move task..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.StartMessageMoveTask(ctx, &sqs.StartMessageMoveTaskInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.StartMessageMoveTask(ctx, &sqs.StartMessageMoveTaskInput{
 		SourceArn:                    &input.SourceArn,
 		DestinationArn:               input.DestinationArn,
 		MaxNumberOfMessagesPerSecond: input.MaxNumberOfMessagesPerSecond,
@@ -303,11 +289,8 @@ func CancelMessageMoveTask(ctx context.Context, taskHandle string, opts ...optio
 	*sqs.CancelMessageMoveTaskOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "canceling message move task..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.CancelMessageMoveTask(ctx, &sqs.CancelMessageMoveTaskInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.CancelMessageMoveTask(ctx, &sqs.CancelMessageMoveTaskInput{
 		TaskHandle: &taskHandle,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
@@ -332,11 +315,8 @@ func ListMessageMoveTasks(ctx context.Context, sourceArn string, opts ...option.
 	*sqs.ListMessageMoveTasksOutput, error) {
 	opt := option.GetListMessageMoveTaskByParams(opts)
 	loggerInfo(opt.DebugMode, "listing message move tasks..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.ListMessageMoveTasks(ctx, &sqs.ListMessageMoveTasksInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.ListMessageMoveTasks(ctx, &sqs.ListMessageMoveTasksInput{
 		SourceArn:  &sourceArn,
 		MaxResults: &opt.MaxResults,
 	}, option.FuncByOptionHttp(opt.OptionHttp))

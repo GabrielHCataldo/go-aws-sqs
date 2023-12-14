@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"go-aws-sqs/internal/client"
 	"go-aws-sqs/sqs/option"
 )
 
@@ -19,6 +20,11 @@ type TagQueueInput struct {
 }
 
 type SetQueueAttributesInput struct {
+	// The URL of the Amazon SQS queue whose attributes are set. Queue URLs and names
+	// are case-sensitive.
+	//
+	// This member is required.
+	QueueUrl string
 	// A map of attributes to set. The following lists the names, descriptions, and
 	// values of the special request parameters that the SetQueueAttributes action
 	// uses:
@@ -139,18 +145,13 @@ type SetQueueAttributesInput struct {
 	//
 	// This member is required.
 	Attributes map[string]string
-	// The URL of the Amazon SQS queue whose attributes are set. Queue URLs and names
-	// are case-sensitive.
-	//
-	// This member is required.
-	QueueUrl string
 }
 
 type UntagQueueInput struct {
 	// The URL of the queue.
 	//
 	// This member is required.
-	QueueUrl *string
+	QueueUrl string
 	// The list of tags to be removed from the specified queue.
 	//
 	// This member is required.
@@ -165,7 +166,7 @@ type GetQueueUrlInput struct {
 	// This member is required.
 	QueueName string
 	// The Amazon Web Services account ID of the account that created the queue.
-	QueueOwnerAWSAccountId string
+	QueueOwnerAWSAccountId *string
 }
 
 type GetQueueAttributesInput struct {
@@ -178,7 +179,7 @@ type GetQueueAttributesInput struct {
 	// parameter is optional, but if you don't specify values for this parameter, the
 	// request returns empty results. In the future, new attributes might be added. If
 	// you write code that calls this action, we recommend that you structure your code
-	// so that it can handler new attributes gracefully. The following attributes are
+	// so that it can handle new attributes gracefully. The following attributes are
 	// supported: The ApproximateNumberOfMessagesDelayed ,
 	// ApproximateNumberOfMessagesNotVisible , and ApproximateNumberOfMessages metrics
 	// may not achieve consistency until at least 1 minute after the producers stop
@@ -318,15 +319,11 @@ type GetQueueAttributesInput struct {
 // Cross-account permissions don't apply to this action. For more information, see
 // Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func CreateQueue(ctx context.Context, queueName string, opts ...option.CreateQueue) (*sqs.CreateQueueOutput,
-	error) {
+func CreateQueue(ctx context.Context, queueName string, opts ...option.CreateQueue) (*sqs.CreateQueueOutput, error) {
 	opt := option.GetCreateQueueByParams(opts)
 	loggerInfo(opt.DebugMode, "creating queue sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.CreateQueue(ctx, &sqs.CreateQueueInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.CreateQueue(ctx, &sqs.CreateQueueInput{
 		QueueName:  &queueName,
 		Attributes: opt.Attributes,
 		Tags:       opt.Tags,
@@ -358,11 +355,8 @@ func CreateQueue(ctx context.Context, queueName string, opts ...option.CreateQue
 func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) (*sqs.TagQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "tag queue sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.TagQueue(ctx, &sqs.TagQueueInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.TagQueue(ctx, &sqs.TagQueueInput{
 		QueueUrl: &input.QueueUrl,
 		Tags:     input.Tags,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
@@ -374,7 +368,7 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) 
 	return output, err
 }
 
-// SetAttributeQueue Sets the value of one or more queue attributes. When you change a queue's
+// SetQueueAttributes Sets the value of one or more queue attributes. When you change a queue's
 // attributes, the change can take up to 60 seconds for most of the attributes to
 // propagate throughout the Amazon SQS system. Changes made to the
 // MessageRetentionPeriod attribute can take up to 15 minutes and will impact
@@ -382,7 +376,7 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) 
 // deleted if the MessageRetentionPeriod is reduced below the age of existing
 // messages.
 //   - In the future, new attributes might be added. If you write code that calls
-//     this action, we recommend that you structure your code so that it can handler new
+//     this action, we recommend that you structure your code so that it can handle new
 //     attributes gracefully.
 //   - Cross-account permissions don't apply to this action. For more information,
 //     see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
@@ -390,15 +384,12 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) 
 //   - To remove the ability to change queue permissions, you must deny permission
 //     to the AddPermission , RemovePermission , and SetQueueAttributes actions in
 //     your IAM policy.
-func SetAttributeQueue(ctx context.Context, input SetQueueAttributesInput, opts ...option.Default) (
+func SetQueueAttributes(ctx context.Context, input SetQueueAttributesInput, opts ...option.Default) (
 	*sqs.SetQueueAttributesOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "set attributes queue sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.SetQueueAttributes(ctx, &sqs.SetQueueAttributesInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.SetQueueAttributes(ctx, &sqs.SetQueueAttributesInput{
 		QueueUrl:   &input.QueueUrl,
 		Attributes: input.Attributes,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
@@ -416,16 +407,12 @@ func SetAttributeQueue(ctx context.Context, input SetQueueAttributesInput, opts 
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...option.Default) (*sqs.UntagQueueOutput,
-	error) {
+func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...option.Default) (*sqs.UntagQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "untag queue sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.UntagQueue(ctx, &sqs.UntagQueueInput{
-		QueueUrl: input.QueueUrl,
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.UntagQueue(ctx, &sqs.UntagQueueInput{
+		QueueUrl: &input.QueueUrl,
 		TagKeys:  input.TagKeys,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
@@ -446,11 +433,8 @@ func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...option.Defau
 func PurgeQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.PurgeQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "purge queue sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.PurgeQueue(ctx, &sqs.PurgeQueueInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.PurgeQueue(ctx, &sqs.PurgeQueueInput{
 		QueueUrl: &queueUrl,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
@@ -475,11 +459,8 @@ func PurgeQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*
 func DeleteQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.DeleteQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "deleting queue sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.DeleteQueue(ctx, &sqs.DeleteQueueInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.DeleteQueue(ctx, &sqs.DeleteQueueInput{
 		QueueUrl: &queueUrl,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
@@ -496,17 +477,13 @@ func DeleteQueue(ctx context.Context, queueUrl string, opts ...option.Default) (
 // access the queue. For more information about shared queue access, see
 // AddPermission or see Allow Developers to Write Messages to a Shared Queue (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-writing-an-sqs-policy.html#write-messages-to-shared-queue)
 // in the Amazon SQS Developer Guide.
-func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...option.Default) (*sqs.GetQueueUrlOutput,
-	error) {
+func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...option.Default) (*sqs.GetQueueUrlOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "get queue url sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
 		QueueName:              &input.QueueName,
-		QueueOwnerAWSAccountId: &input.QueueOwnerAWSAccountId,
+		QueueOwnerAWSAccountId: input.QueueOwnerAWSAccountId,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error get queue url sqs:", err)
@@ -523,11 +500,8 @@ func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts
 	*sqs.GetQueueAttributesOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "get queue attributes sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.GetQueueAttributes(ctx, &sqs.GetQueueAttributesInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.GetQueueAttributes(ctx, &sqs.GetQueueAttributesInput{
 		QueueUrl:       &input.QueueUrl,
 		AttributeNames: input.AttributeNames,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
@@ -554,14 +528,11 @@ func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts
 func ListQueues(ctx context.Context, opts ...option.ListQueues) (*sqs.ListQueuesOutput, error) {
 	opt := option.GetListQueuesByParams(opts)
 	loggerInfo(opt.DebugMode, "list queue tags sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.ListQueues(ctx, &sqs.ListQueuesInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.ListQueues(ctx, &sqs.ListQueuesInput{
 		MaxResults:      &opt.MaxResults,
-		NextToken:       &opt.NextToken,
-		QueueNamePrefix: &opt.QueueNamePrefix,
+		NextToken:       opt.NextToken,
+		QueueNamePrefix: opt.QueueNamePrefix,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error list queue tags sqs:", err)
@@ -577,15 +548,11 @@ func ListQueues(ctx context.Context, opts ...option.ListQueues) (*sqs.ListQueues
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func ListQueueTags(ctx context.Context, queueUrl string, opts ...option.Default) (
-	*sqs.ListQueueTagsOutput, error) {
+func ListQueueTags(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.ListQueueTagsOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "list queue tags sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.ListQueueTags(ctx, &sqs.ListQueueTagsInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.ListQueueTags(ctx, &sqs.ListQueueTagsInput{
 		QueueUrl: &queueUrl,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
@@ -611,14 +578,11 @@ func ListDeadLetterSourceQueues(ctx context.Context, queueUrl string, opts ...op
 	*sqs.ListDeadLetterSourceQueuesOutput, error) {
 	opt := option.GetListDeadLetterSourceQueuesByParams(opts)
 	loggerInfo(opt.DebugMode, "listing dead letter source queues..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
-	output, err := client.ListDeadLetterSourceQueues(ctx, &sqs.ListDeadLetterSourceQueuesInput{
+	sqsClient := client.GetClient(ctx)
+	output, err := sqsClient.ListDeadLetterSourceQueues(ctx, &sqs.ListDeadLetterSourceQueuesInput{
 		QueueUrl:   &queueUrl,
 		MaxResults: &opt.MaxResults,
-		NextToken:  &opt.NextToken,
+		NextToken:  opt.NextToken,
 	}, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error list dead letter source queues:", err)

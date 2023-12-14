@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"reflect"
 	"strconv"
@@ -13,21 +12,21 @@ import (
 	"time"
 )
 
-func ConvertToString(a any) (string, error) {
+func ConvertToString(a any) string {
 	if a == nil {
-		return "", nil
+		return ""
 	}
 	v := reflect.ValueOf(a)
 	if v.Type().Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 	if !v.CanInterface() || IsZeroReflect(v) {
-		return "", nil
+		return ""
 	}
 	switch v.Kind() {
 	case reflect.Struct, reflect.Map, reflect.Slice, reflect.Array:
-		b, err := json.Marshal(v.Interface())
-		return string(b), err
+		b, _ := json.Marshal(v.Interface())
+		return string(b)
 	default:
 		return convertToStringByType(a)
 	}
@@ -49,19 +48,16 @@ func ConvertToBytes(a any) ([]byte, error) {
 	}
 }
 
-func GetDataType(a any) (*string, error) {
-	if a == nil {
-		return nil, nil
-	}
+func GetDataType(a any) string {
 	t := reflect.TypeOf(a)
 	switch t.Kind() {
 	case reflect.Struct, reflect.Map, reflect.Slice, reflect.Array, reflect.Interface, reflect.String, reflect.Bool:
-		return aws.String("String"), nil
+		return "String"
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return aws.String("Number"), nil
+		return "Number"
 	default:
-		return nil, nil
+		return ""
 	}
 }
 
@@ -91,7 +87,7 @@ func IsNilValueReflect(v reflect.Value) bool {
 }
 
 func IsZeroReflect(v reflect.Value) bool {
-	return v.Kind() == reflect.Invalid || v.IsZero() || IsNilValueReflect(v) ||
+	return v.Kind() == reflect.Invalid || v.IsZero() || IsNilValueReflect(v) || !v.CanInterface() ||
 		(v.Kind() == reflect.Map && len(v.MapKeys()) == 0) ||
 		(v.Kind() == reflect.Struct && v.NumField() == 0) ||
 		(v.Kind() == reflect.Slice && v.Len() == 0) ||
@@ -100,8 +96,7 @@ func IsZeroReflect(v reflect.Value) bool {
 
 func IsNonZeroMessageAttValue(v *types.MessageAttributeValue) bool {
 	return v != nil && v.DataType != nil &&
-		(v.StringValue != nil || len(v.StringListValues) != 0) ||
-		(v.BinaryValue != nil || len(v.BinaryListValues) != 0)
+		(v.StringValue != nil && len(*v.StringValue) != 0)
 }
 
 func ParseStringToGeneric[T any](s string, dest *T) {
@@ -171,37 +166,37 @@ func ConvertDurationToInt32(d time.Duration) int32 {
 	return int32(d.Seconds())
 }
 
-func convertToStringByType(a any) (string, error) {
+func convertToStringByType(a any) string {
 	switch t := a.(type) {
 	case int:
-		return strconv.Itoa(t), nil
+		return strconv.Itoa(t)
 	case int8:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case uint8:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case int16:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case uint16:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case int32:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case uint32:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case int64:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case uint64:
-		return strconv.Itoa(int(t)), nil
+		return strconv.Itoa(int(t))
 	case bool:
-		return strconv.FormatBool(t), nil
+		return strconv.FormatBool(t)
 	case float32:
-		return strconv.FormatFloat(float64(t), 'f', -1, 32), nil
+		return strconv.FormatFloat(float64(t), 'f', -1, 32)
 	case float64:
-		return strconv.FormatFloat(t, 'f', -1, 64), nil
+		return strconv.FormatFloat(t, 'f', -1, 64)
 	case time.Time:
-		b, err := t.MarshalJSON()
-		return string(b), err
+		b, _ := t.MarshalJSON()
+		return string(b)
 	case string:
-		return t, nil
+		return t
 	}
-	return fmt.Sprintf(`"%s"`, a), nil
+	return fmt.Sprintf(`"%s"`, a)
 }

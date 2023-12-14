@@ -14,6 +14,9 @@ func TestSendMessage(t *testing.T) {
 			var err error
 			if tt.async {
 				SendMessageAsync(ctx, tt.queueUrl, tt.v, tt.opts...)
+				select {
+				case <-ctx.Done():
+				}
 			} else {
 				_, err = SendMessage(ctx, tt.queueUrl, tt.v, tt.opts...)
 			}

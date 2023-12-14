@@ -7,11 +7,15 @@ import (
 
 type Producer struct {
 	Default
-	DelaySeconds            time.Duration `json:"delaySeconds,omitempty"`
-	MessageAttributes       any           `json:"messageAttributes,omitempty"`
-	MessageSystemAttributes any           `json:"messageSystemAttributes,omitempty"`
-	MessageDeduplicationId  string        `json:"messageDeduplicationId,omitempty"`
-	MessageGroupId          string        `json:"messageGroupId,omitempty"`
+	DelaySeconds            time.Duration            `json:"delaySeconds,omitempty"`
+	MessageAttributes       any                      `json:"messageAttributes,omitempty"`
+	MessageSystemAttributes *MessageSystemAttributes `json:"messageSystemAttributes,omitempty"`
+	MessageDeduplicationId  *string                  `json:"messageDeduplicationId,omitempty"`
+	MessageGroupId          *string                  `json:"messageGroupId,omitempty"`
+}
+
+type MessageSystemAttributes struct {
+	AWSTraceHeader string `json:"AWSTraceHeader,omitempty"`
 }
 
 func NewProducer() Producer {
@@ -28,18 +32,18 @@ func (o Producer) SetMessageAttributes(m any) Producer {
 	return o
 }
 
-func (o Producer) SetMessageSystemAttributes(m any) Producer {
-	o.MessageSystemAttributes = m
+func (o Producer) SetMessageSystemAttributes(m MessageSystemAttributes) Producer {
+	o.MessageSystemAttributes = &m
 	return o
 }
 
 func (o Producer) SetMessageDeduplicationId(s string) Producer {
-	o.MessageDeduplicationId = s
+	o.MessageDeduplicationId = &s
 	return o
 }
 
 func (o Producer) SetMessageGroupId(s string) Producer {
-	o.MessageGroupId = s
+	o.MessageGroupId = &s
 	return o
 }
 
@@ -66,10 +70,10 @@ func GetProducerByParams(opts []Producer) Producer {
 		if util.IsValidType(opt.MessageSystemAttributes) {
 			result.MessageSystemAttributes = opt.MessageSystemAttributes
 		}
-		if len(opt.MessageDeduplicationId) != 0 {
+		if opt.MessageDeduplicationId != nil && len(*opt.MessageDeduplicationId) != 0 {
 			result.MessageDeduplicationId = opt.MessageDeduplicationId
 		}
-		if len(opt.MessageGroupId) != 0 {
+		if opt.MessageGroupId != nil && len(*opt.MessageGroupId) != 0 {
 			result.MessageGroupId = opt.MessageGroupId
 		}
 	}

@@ -151,20 +151,21 @@ type ListQueues struct {
 	// You must set MaxResults to receive a value for NextToken in the response.
 	MaxResults int32
 	// Pagination token to request the next set of results.
-	NextToken string
+	NextToken *string
 	// A string to use for filtering the list results. Only those queues whose name
 	// begins with the specified string are returned. Queue URLs and names are
 	// case-sensitive.
-	QueueNamePrefix string
+	QueueNamePrefix *string
 }
 
 type ListDeadLetterSourceQueues struct {
 	Default
 	// Maximum number of results to include in the response. Value range is 1 to 1000.
 	// You must set MaxResults to receive a value for NextToken in the response.
+	// default 100
 	MaxResults int32
 	// Pagination token to request the next set of results.
-	NextToken string
+	NextToken *string
 }
 
 func NewCreateQueue() CreateQueue {
@@ -215,12 +216,12 @@ func (o ListQueues) SetMaxResults(i int32) ListQueues {
 }
 
 func (o ListQueues) SetNextToken(nextToken string) ListQueues {
-	o.NextToken = nextToken
+	o.NextToken = &nextToken
 	return o
 }
 
 func (o ListQueues) SetQueueNamePrefix(queueNamePrefix string) ListQueues {
-	o.QueueNamePrefix = queueNamePrefix
+	o.QueueNamePrefix = &queueNamePrefix
 	return o
 }
 
@@ -240,7 +241,7 @@ func (o ListDeadLetterSourceQueues) SetMaxResults(i int32) ListDeadLetterSourceQ
 }
 
 func (o ListDeadLetterSourceQueues) SetNextToken(nextToken string) ListDeadLetterSourceQueues {
-	o.NextToken = nextToken
+	o.NextToken = &nextToken
 	return o
 }
 
@@ -265,10 +266,10 @@ func GetListQueuesByParams(opts []ListQueues) ListQueues {
 		if opt.MaxResults > 0 {
 			result.MaxResults = opt.MaxResults
 		}
-		if len(opt.NextToken) != 0 {
+		if opt.NextToken != nil && len(*opt.NextToken) != 0 {
 			result.NextToken = opt.NextToken
 		}
-		if len(opt.QueueNamePrefix) != 0 {
+		if opt.QueueNamePrefix != nil && len(*opt.QueueNamePrefix) != 0 {
 			result.QueueNamePrefix = opt.QueueNamePrefix
 		}
 	}
@@ -282,9 +283,12 @@ func GetListDeadLetterSourceQueuesByParams(opts []ListDeadLetterSourceQueues) Li
 		if opt.MaxResults > 0 {
 			result.MaxResults = opt.MaxResults
 		}
-		if len(opt.NextToken) != 0 {
+		if opt.NextToken != nil && len(*opt.NextToken) != 0 {
 			result.NextToken = opt.NextToken
 		}
+	}
+	if result.MaxResults == 0 {
+		result.MaxResults = 100
 	}
 	return result
 }

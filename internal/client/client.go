@@ -1,4 +1,4 @@
-package sqs
+package client
 
 import (
 	"context"
@@ -8,15 +8,14 @@ import (
 
 var sqsClient *sqs.Client
 
-func getClient(ctx context.Context, debugMode bool) (*sqs.Client, error) {
+func GetClient(ctx context.Context) *sqs.Client {
 	if sqsClient != nil {
-		return sqsClient, nil
+		return sqsClient
 	}
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		loggerErr(debugMode, "error get client sqs:", err)
-		return nil, err
+		panic(err)
 	}
 	sqsClient = sqs.NewFromConfig(cfg)
-	return sqsClient, nil
+	return sqsClient
 }

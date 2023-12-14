@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"go-aws-sqs/internal/client"
 	"go-aws-sqs/internal/util"
 	"go-aws-sqs/sqs/option"
 	"reflect"
@@ -36,10 +37,7 @@ func SendMessage(ctx context.Context, queueUrl string, v any, opts ...option.Pro
 	*sqs.SendMessageOutput, error) {
 	opt := option.GetProducerByParams(opts)
 	loggerInfo(opt.DebugMode, "getting client sqs..")
-	client, err := getClient(ctx, opt.DebugMode)
-	if err != nil {
-		return nil, err
-	}
+	sqsClient := client.GetClient(ctx)
 	loggerInfo(opt.DebugMode, "preparing message input..")
 	input, err := prepareMessageInput(queueUrl, v, opt)
 	if err != nil {
@@ -47,7 +45,7 @@ func SendMessage(ctx context.Context, queueUrl string, v any, opts ...option.Pro
 		return nil, err
 	}
 	loggerInfo(opt.DebugMode, "sending message..")
-	output, err := client.SendMessage(ctx, input, option.FuncByOptionHttp(opt.OptionHttp))
+	output, err := sqsClient.SendMessage(ctx, input, option.FuncByOptionHttp(opt.OptionHttp))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error send message:", err)
 	} else {
@@ -81,17 +79,11 @@ func sendMessageAsync(ctx context.Context, queueUrl string, v any, opts ...optio
 }
 
 func prepareMessageInput(queueUrl string, v any, opt option.Producer) (*sqs.SendMessageInput, error) {
-	body, err := util.ConvertToString(v)
-	if err != nil {
-		return nil, err
-	} else if len(body) == 0 {
+	body := util.ConvertToString(v)
+	if len(body) == 0 {
 		return nil, ErrMessageBodyEmpty
 	}
 	messageAttByOpt, err := getMessageAttValueByOpt(opt)
-	if err != nil {
-		return nil, err
-	}
-	messageSystemAttByOpt, err := getMessageSystemAttValueByOpt(opt)
 	if err != nil {
 		return nil, err
 	}
@@ -100,9 +92,9 @@ func prepareMessageInput(queueUrl string, v any, opt option.Producer) (*sqs.Send
 		QueueUrl:                &queueUrl,
 		DelaySeconds:            util.ConvertDurationToInt32(opt.DelaySeconds),
 		MessageAttributes:       messageAttByOpt,
-		MessageDeduplicationId:  &opt.MessageDeduplicationId,
-		MessageGroupId:          &opt.MessageGroupId,
-		MessageSystemAttributes: messageSystemAttByOpt,
+		MessageDeduplicationId:  opt.MessageDeduplicationId,
+		MessageGroupId:          opt.MessageGroupId,
+		MessageSystemAttributes: getMessageSystemAttValueByOpt(opt),
 	}, nil
 }
 
@@ -115,27 +107,17 @@ func getMessageAttValueByOpt(opt option.Producer) (map[string]types.MessageAttri
 	return convertToMessageAttValue(t, v)
 }
 
-func getMessageSystemAttValueByOpt(opt option.Producer) (map[string]types.MessageSystemAttributeValue, error) {
+func getMessageSystemAttValueByOpt(opt option.Producer) map[string]types.MessageSystemAttributeValue {
 	v := reflect.ValueOf(opt.MessageSystemAttributes)
-	t := reflect.TypeOf(opt.MessageSystemAttributes)
 	if util.IsZeroReflect(v) {
-		return nil, nil
+		return nil
 	}
-	result := map[string]types.MessageSystemAttributeValue{}
-	resultMessageAttValue, err := convertToMessageAttValue(t, v)
-	if err != nil {
-		return nil, err
+	return map[string]types.MessageSystemAttributeValue{
+		"AWSTraceHeader": {
+			DataType:    aws.String("String"),
+			StringValue: aws.String(opt.MessageSystemAttributes.AWSTraceHeader),
+		},
 	}
-	for k, mv := range resultMessageAttValue {
-		result[k] = types.MessageSystemAttributeValue{
-			DataType:    mv.DataType,
-			StringValue: mv.StringValue,
-		}
-	}
-	if len(result) == 0 {
-		return nil, nil
-	}
-	return result, nil
 }
 
 func convertToMessageAttValue(t reflect.Type, v reflect.Value) (map[string]types.MessageAttributeValue, error) {
@@ -154,19 +136,14 @@ func convertMapToMessageAttValue(v reflect.Value) (map[string]types.MessageAttri
 	for _, key := range v.MapKeys() {
 		mKey := key.Convert(v.Type().Key())
 		mValue := v.MapIndex(mKey)
-		if !mKey.CanInterface() || !mValue.CanInterface() {
+		if util.IsZeroReflect(mKey) {
 			continue
 		}
-		mKeyString, err := util.ConvertToString(mKey.Interface())
-		if err != nil {
-			return nil, err
-		} else if len(mKeyString) != 0 && util.IsZeroReflect(mValue) {
+		mKeyString := util.ConvertToString(mKey.Interface())
+		if util.IsZeroReflect(mValue) {
 			continue
 		}
-		mValueProcessed, err := convertReflectToMessageAttributeValue(mValue)
-		if err != nil {
-			return nil, err
-		}
+		mValueProcessed := convertReflectToMessageAttributeValue(mValue)
 		if len(mKeyString) != 0 && util.IsNonZeroMessageAttValue(mValueProcessed) {
 			result[mKeyString] = *mValueProcessed
 		}
@@ -177,8 +154,7 @@ func convertMapToMessageAttValue(v reflect.Value) (map[string]types.MessageAttri
 	return result, nil
 }
 
-func convertStructToMessageAttValue(t reflect.Type, v reflect.Value) (map[string]types.MessageAttributeValue,
-	error) {
+func convertStructToMessageAttValue(t reflect.Type, v reflect.Value) (map[string]types.MessageAttributeValue, error) {
 	result := map[string]types.MessageAttributeValue{}
 	for i := 0; i < v.NumField(); i++ {
 		fieldValue := v.Field(i)
@@ -192,10 +168,7 @@ func convertStructToMessageAttValue(t reflect.Type, v reflect.Value) (map[string
 		if !fieldValue.CanInterface() || util.IsZeroReflect(fieldValue) {
 			continue
 		}
-		valueConverted, err := convertReflectToMessageAttributeValue(fieldValue)
-		if err != nil {
-			return nil, err
-		}
+		valueConverted := convertReflectToMessageAttributeValue(fieldValue)
 		if len(fieldName) != 0 && util.IsNonZeroMessageAttValue(valueConverted) {
 			result[fieldName] = *valueConverted
 		}
@@ -206,37 +179,20 @@ func convertStructToMessageAttValue(t reflect.Type, v reflect.Value) (map[string
 	return result, nil
 }
 
-func convertReflectToMessageAttributeValue(v reflect.Value) (*types.MessageAttributeValue, error) {
+func convertReflectToMessageAttributeValue(v reflect.Value) *types.MessageAttributeValue {
 	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		v = v.Elem()
 	}
 	result := types.MessageAttributeValue{}
-	dataType, err := util.GetDataType(v.Interface())
-	if err != nil {
-		return nil, err
-	} else if dataType == nil {
-		return nil, nil
-	}
-	result.DataType = dataType
-	switch *dataType {
-	case "String", "Number":
-		strValue, err := util.ConvertToString(v.Interface())
-		if err != nil {
-			return nil, err
-		} else if len(strValue) == 0 {
-			return nil, nil
+	dataType := util.GetDataType(v.Interface())
+	result.DataType = &dataType
+	if dataType == "String" || dataType == "Number" {
+		strValue := util.ConvertToString(v.Interface())
+		if len(strValue) == 0 {
+			return nil
 		}
 		result.StringValue = &strValue
-		break
-	default:
-		byteValue, err := util.ConvertToBytes(v.Interface())
-		if err != nil {
-			return nil, err
-		} else if len(byteValue) == 0 {
-			return nil, nil
-		}
-		result.BinaryValue = byteValue
-		break
+		return &result
 	}
-	return &result, nil
+	return nil
 }
