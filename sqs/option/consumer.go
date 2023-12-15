@@ -120,8 +120,8 @@ func (o Consumer) SetDebugMode(b bool) Consumer {
 	return o
 }
 
-func (o Consumer) SetOptionHttp(opt Http) Consumer {
-	o.OptionHttp = &opt
+func (o Consumer) SetHttpClient(opt HttpClient) Consumer {
+	o.HttpClient = &opt
 	return o
 }
 

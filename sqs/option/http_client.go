@@ -8,7 +8,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-type Http struct {
+type HttpClient struct {
 	// Set of options to modify how an operation is invoked. These apply to all
 	// operations invoked for this sqsClient. Use functional options on operation call to
 	// modify this list for per operation behavior.
@@ -66,7 +66,7 @@ type Http struct {
 	RuntimeEnvironment aws.RuntimeEnvironment
 	// The initial DefaultsMode used when the client options were constructed. If the
 	// DefaultsMode was set to aws.DefaultsModeAuto this will store what the resolved
-	// value was at that point in time. Currently does not support per operation call
+	// value was at that point in time. Currently, does not support per operation call
 	// overrides, may in the future.
 	resolvedDefaultsMode aws.DefaultsMode
 	// The HTTP client to invoke API calls with. Defaults to client's default HTTP
@@ -79,7 +79,7 @@ type Http struct {
 	AuthSchemes []smithyhttp.AuthScheme
 }
 
-func FuncByOptionHttp(opt *Http) func(options *sqs.Options) {
+func FuncByHttpClient(opt *HttpClient) func(options *sqs.Options) {
 	return func(options *sqs.Options) {
 		if opt == nil {
 			return

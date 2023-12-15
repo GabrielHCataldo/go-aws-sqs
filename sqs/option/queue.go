@@ -195,8 +195,8 @@ func (o CreateQueue) SetDebugMode(b bool) CreateQueue {
 	return o
 }
 
-func (o CreateQueue) SetOptionHttp(opt Http) CreateQueue {
-	o.OptionHttp = &opt
+func (o CreateQueue) SetHttpClient(opt HttpClient) CreateQueue {
+	o.HttpClient = &opt
 	return o
 }
 
@@ -205,8 +205,8 @@ func (o ListQueues) SetDebugMode(b bool) ListQueues {
 	return o
 }
 
-func (o ListQueues) SetOptionHttp(opt Http) ListQueues {
-	o.OptionHttp = &opt
+func (o ListQueues) SetHttpClient(opt HttpClient) ListQueues {
+	o.HttpClient = &opt
 	return o
 }
 
@@ -230,8 +230,8 @@ func (o ListDeadLetterSourceQueues) SetDebugMode(b bool) ListDeadLetterSourceQue
 	return o
 }
 
-func (o ListDeadLetterSourceQueues) SetOptionHttp(opt Http) ListDeadLetterSourceQueues {
-	o.OptionHttp = &opt
+func (o ListDeadLetterSourceQueues) SetHttpClient(opt HttpClient) ListDeadLetterSourceQueues {
+	o.HttpClient = &opt
 	return o
 }
 

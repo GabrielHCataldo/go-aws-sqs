@@ -327,7 +327,7 @@ func CreateQueue(ctx context.Context, queueName string, opts ...option.CreateQue
 		QueueName:  &queueName,
 		Attributes: opt.Attributes,
 		Tags:       opt.Tags,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error create queue sqs:", err)
 	} else {
@@ -359,7 +359,7 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) 
 	output, err := sqsClient.TagQueue(ctx, &sqs.TagQueueInput{
 		QueueUrl: &input.QueueUrl,
 		Tags:     input.Tags,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error tag queue sqs:", err)
 	} else {
@@ -392,7 +392,7 @@ func SetQueueAttributes(ctx context.Context, input SetQueueAttributesInput, opts
 	output, err := sqsClient.SetQueueAttributes(ctx, &sqs.SetQueueAttributesInput{
 		QueueUrl:   &input.QueueUrl,
 		Attributes: input.Attributes,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error set attributes queue sqs:", err)
 	} else {
@@ -414,7 +414,7 @@ func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...option.Defau
 	output, err := sqsClient.UntagQueue(ctx, &sqs.UntagQueueInput{
 		QueueUrl: &input.QueueUrl,
 		TagKeys:  input.TagKeys,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error untag queue sqs:", err)
 	} else {
@@ -436,7 +436,7 @@ func PurgeQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*
 	sqsClient := client.GetClient(ctx)
 	output, err := sqsClient.PurgeQueue(ctx, &sqs.PurgeQueueInput{
 		QueueUrl: &queueUrl,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error purge queue sqs:", err)
 	} else {
@@ -445,7 +445,7 @@ func PurgeQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*
 	return output, err
 }
 
-// DeleteQueue Deletes the queue specified by the QueueUrl , regardless of the queue's
+// DeleteQueue Deletes the queue specified by the QueueUrl, regardless of the queue's
 // contents. Be careful with the DeleteQueue action: When you delete a queue, any
 // messages in the queue are no longer available. When you delete a queue, the
 // deletion process takes up to 60 seconds. Requests you send involving that queue
@@ -462,7 +462,7 @@ func DeleteQueue(ctx context.Context, queueUrl string, opts ...option.Default) (
 	sqsClient := client.GetClient(ctx)
 	output, err := sqsClient.DeleteQueue(ctx, &sqs.DeleteQueueInput{
 		QueueUrl: &queueUrl,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error delete queue sqs:", err)
 	} else {
@@ -484,7 +484,7 @@ func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...option.Def
 	output, err := sqsClient.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
 		QueueName:              &input.QueueName,
 		QueueOwnerAWSAccountId: input.QueueOwnerAWSAccountId,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error get queue url sqs:", err)
 	} else {
@@ -504,7 +504,7 @@ func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts
 	output, err := sqsClient.GetQueueAttributes(ctx, &sqs.GetQueueAttributesInput{
 		QueueUrl:       &input.QueueUrl,
 		AttributeNames: input.AttributeNames,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error queue attributes sqs:", err)
 	} else {
@@ -533,7 +533,7 @@ func ListQueues(ctx context.Context, opts ...option.ListQueues) (*sqs.ListQueues
 		MaxResults:      &opt.MaxResults,
 		NextToken:       opt.NextToken,
 		QueueNamePrefix: opt.QueueNamePrefix,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error list queue tags sqs:", err)
 	} else {
@@ -554,7 +554,7 @@ func ListQueueTags(ctx context.Context, queueUrl string, opts ...option.Default)
 	sqsClient := client.GetClient(ctx)
 	output, err := sqsClient.ListQueueTags(ctx, &sqs.ListQueueTagsInput{
 		QueueUrl: &queueUrl,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error list queue tags sqs:", err)
 	} else {
@@ -583,7 +583,7 @@ func ListDeadLetterSourceQueues(ctx context.Context, queueUrl string, opts ...op
 		QueueUrl:   &queueUrl,
 		MaxResults: &opt.MaxResults,
 		NextToken:  opt.NextToken,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error list dead letter source queues:", err)
 	} else {

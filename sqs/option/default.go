@@ -1,8 +1,10 @@
 package option
 
 type Default struct {
-	OptionHttp *Http `json:"optionsHttp,omitempty"`
-	DebugMode  bool  `json:"debugMode,omitempty"`
+	// HTTP communication customization options with AWS SQS
+	HttpClient *HttpClient `json:"httpClient,omitempty"`
+	// if true and print all information and error logs
+	DebugMode bool `json:"debugMode,omitempty"`
 }
 
 func NewDefault() Default {
@@ -14,8 +16,8 @@ func (o Default) SetDebugMode(b bool) Default {
 	return o
 }
 
-func (o Default) SetOptionHttp(opt Http) Default {
-	o.OptionHttp = &opt
+func (o Default) SetHttpClient(httpClient HttpClient) Default {
+	o.HttpClient = &httpClient
 	return o
 }
 
@@ -31,7 +33,7 @@ func fillDefaultFields(opt Default, dest *Default) {
 	if opt.DebugMode {
 		dest.DebugMode = true
 	}
-	if opt.OptionHttp != nil {
-		dest.OptionHttp = opt.OptionHttp
+	if opt.HttpClient != nil {
+		dest.HttpClient = opt.HttpClient
 	}
 }

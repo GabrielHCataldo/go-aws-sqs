@@ -16,8 +16,8 @@ func (o ListMessageMoveTasks) SetDebugMode(b bool) ListMessageMoveTasks {
 	return o
 }
 
-func (o ListMessageMoveTasks) SetOptionHttp(opt Http) ListMessageMoveTasks {
-	o.OptionHttp = &opt
+func (o ListMessageMoveTasks) SetHttpClient(opt HttpClient) ListMessageMoveTasks {
+	o.HttpClient = &opt
 	return o
 }
 

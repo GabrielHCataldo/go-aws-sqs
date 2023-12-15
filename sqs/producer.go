@@ -24,13 +24,15 @@ import (
 //
 //	output, err := SendMessage(ctx, queueUrl, v, opts...)
 //
-// Parameters:
+// # Parameters:
+//
 // - ctx (Context): The context of the request.
 // - queueUrl (string): The URL of the SQS queue.
 // - v (any): The content of the message.
-// - opts (OptionsProducer): Optional options to customize the message. (see OptionsProducer declaration for available options)
+// - opts (option.Producer): Optional options to customize the message. (see OptionsProducer declaration for available options)
 //
-// Returns:
+// # Returns:
+//
 // - *sqs.SendMessageOutput: The result of the SendMessage operation.
 // - error: An error if one occurs during the SendMessage operation.
 func SendMessage(ctx context.Context, queueUrl string, v any, opts ...option.Producer) (*sqs.SendMessageOutput, error) {
@@ -44,7 +46,7 @@ func SendMessage(ctx context.Context, queueUrl string, v any, opts ...option.Pro
 		return nil, err
 	}
 	loggerInfo(opt.DebugMode, "sending message..")
-	output, err := sqsClient.SendMessage(ctx, input, option.FuncByOptionHttp(opt.OptionHttp))
+	output, err := sqsClient.SendMessage(ctx, input, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error send message:", err)
 	} else {
@@ -61,13 +63,15 @@ func SendMessage(ctx context.Context, queueUrl string, v any, opts ...option.Pro
 // which sends the message to the queue. If an error occurs and debug mode is enabled, it logs the error.
 // If debug mode is enabled, it logs the successful message delivery.
 //
-// Parameters:
+// # Parameters:
+//
 // - ctx (Context): The context of the request.
 // - queueUrl (string): The URL of the SQS queue.
 // - v (any): The content of the message.
 // - opts (OptionsProducer): Optional options to customize the message. (see OptionsProducer declaration for available options)
 //
-// Example usage:
+// # Example usage:
+//
 // SendMessageAsync(ctx, queueUrl, v, opts...)
 func SendMessageAsync(ctx context.Context, queueUrl string, v any, opts ...option.Producer) {
 	go sendMessageAsync(ctx, queueUrl, v, opts...)

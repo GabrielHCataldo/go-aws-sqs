@@ -129,7 +129,7 @@ func DeleteMessage(ctx context.Context, queueUrl, receiptHandle string, opts ...
 	output, err := sqsClient.DeleteMessage(ctx, &sqs.DeleteMessageInput{
 		QueueUrl:      &queueUrl,
 		ReceiptHandle: &receiptHandle,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error delete message:", err)
 	} else {
@@ -151,7 +151,7 @@ func DeleteMessageBatch(ctx context.Context, input DeleteMessageBatchInput, opts
 	output, err := sqsClient.DeleteMessageBatch(ctx, &sqs.DeleteMessageBatchInput{
 		Entries:  prepareEntriesDeleteMessageBatch(input.Entries),
 		QueueUrl: &input.QueueUrl,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error delete messages batch:", err)
 	} else {
@@ -210,7 +210,7 @@ func ChangeMessageVisibility(ctx context.Context, input ChangeMessageVisibilityI
 		QueueUrl:          &input.QueueUrl,
 		ReceiptHandle:     &input.ReceiptHandle,
 		VisibilityTimeout: util.ConvertDurationToInt32(input.VisibilityTimeout),
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error charge message visibility:", err)
 	} else {
@@ -234,7 +234,7 @@ func ChangeMessageVisibilityBatch(ctx context.Context, input ChangeMessageVisibi
 	output, err := sqsClient.ChangeMessageVisibilityBatch(ctx, &sqs.ChangeMessageVisibilityBatchInput{
 		Entries:  prepareEntriesChangeMessageVisibilityBatch(input.Entries),
 		QueueUrl: &input.QueueUrl,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error charge message visibility batch:", err)
 	} else {
@@ -266,7 +266,7 @@ func StartMessageMoveTask(ctx context.Context, input StartMessageMoveTaskInput, 
 		SourceArn:                    &input.SourceArn,
 		DestinationArn:               input.DestinationArn,
 		MaxNumberOfMessagesPerSecond: input.MaxNumberOfMessagesPerSecond,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error start message move task:", err)
 	} else {
@@ -294,7 +294,7 @@ func CancelMessageMoveTask(ctx context.Context, taskHandle string, opts ...optio
 	sqsClient := client.GetClient(ctx)
 	output, err := sqsClient.CancelMessageMoveTask(ctx, &sqs.CancelMessageMoveTaskInput{
 		TaskHandle: &taskHandle,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error cancel message move task:", err)
 	} else {
@@ -321,7 +321,7 @@ func ListMessageMoveTasks(ctx context.Context, sourceArn string, opts ...option.
 	output, err := sqsClient.ListMessageMoveTasks(ctx, &sqs.ListMessageMoveTasksInput{
 		SourceArn:  &sourceArn,
 		MaxResults: &opt.MaxResults,
-	}, option.FuncByOptionHttp(opt.OptionHttp))
+	}, option.FuncByHttpClient(opt.HttpClient))
 	if err != nil {
 		loggerErr(opt.DebugMode, "error list message move tasks:", err)
 	} else {

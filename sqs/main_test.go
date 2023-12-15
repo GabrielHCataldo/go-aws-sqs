@@ -236,7 +236,7 @@ func initListTestProducer() []testProducer {
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetDebugMode(true),
-				option.NewProducer().SetOptionHttp(option.Http{}),
+				option.NewProducer().SetHttpClient(option.HttpClient{}),
 				option.NewProducer().SetMessageAttributes(initMessageAttTest()),
 				option.NewProducer().SetMessageGroupId("group"),
 				option.NewProducer().SetMessageDeduplicationId("deduplication"),
@@ -880,7 +880,7 @@ func initStartMessageMoveTaskInput() StartMessageMoveTaskInput {
 func initOptionsConsumerDefault() []option.Consumer {
 	return []option.Consumer{
 		option.NewConsumer().SetDebugMode(true),
-		option.NewConsumer().SetOptionHttp(option.Http{}),
+		option.NewConsumer().SetHttpClient(option.HttpClient{}),
 		option.NewConsumer().SetConsumerMessageTimeout(5 * time.Second),
 		option.NewConsumer().SetDelayQueryLoop(4 * time.Second),
 		option.NewConsumer().SetDeleteMessageProcessedSuccess(true),
@@ -894,7 +894,7 @@ func initOptionsConsumerDefault() []option.Consumer {
 func initOptionsConsumerWithErr() []option.Consumer {
 	return []option.Consumer{
 		option.NewConsumer().SetDebugMode(true),
-		option.NewConsumer().SetOptionHttp(option.Http{}),
+		option.NewConsumer().SetHttpClient(option.HttpClient{}),
 		option.NewConsumer().SetConsumerMessageTimeout(0),
 		option.NewConsumer().SetDelayQueryLoop(0),
 		option.NewConsumer().SetDeleteMessageProcessedSuccess(true),
@@ -908,7 +908,7 @@ func initOptionsConsumerWithErr() []option.Consumer {
 func initOptionsCreateQueue() []option.CreateQueue {
 	return []option.CreateQueue{
 		option.NewCreateQueue().SetDebugMode(true),
-		option.NewCreateQueue().SetOptionHttp(option.Http{}),
+		option.NewCreateQueue().SetHttpClient(option.HttpClient{}),
 		option.NewCreateQueue().SetAttributes(initAttributesQueue("800")),
 		option.NewCreateQueue().SetTags(initTagsQueue()),
 	}
@@ -917,7 +917,7 @@ func initOptionsCreateQueue() []option.CreateQueue {
 func initOptionsListQueues() []option.ListQueues {
 	return []option.ListQueues{
 		option.NewListQueue().SetDebugMode(true),
-		option.NewListQueue().SetOptionHttp(option.Http{}),
+		option.NewListQueue().SetHttpClient(option.HttpClient{}),
 		option.NewListQueue().SetMaxResults(0),
 		option.NewListQueue().SetNextToken(""),
 		option.NewListQueue().SetQueueNamePrefix(""),
@@ -927,7 +927,7 @@ func initOptionsListQueues() []option.ListQueues {
 func initOptionsListQueuesWithErr() []option.ListQueues {
 	return []option.ListQueues{
 		option.NewListQueue().SetDebugMode(true),
-		option.NewListQueue().SetOptionHttp(option.Http{}),
+		option.NewListQueue().SetHttpClient(option.HttpClient{}),
 		option.NewListQueue().SetMaxResults(10),
 		option.NewListQueue().SetNextToken("test"),
 		option.NewListQueue().SetQueueNamePrefix("test"),
@@ -937,7 +937,7 @@ func initOptionsListQueuesWithErr() []option.ListQueues {
 func initOptionsListDeadLetterSourceQueues() []option.ListDeadLetterSourceQueues {
 	return []option.ListDeadLetterSourceQueues{
 		option.NewListDeadLetterSourceQueues().SetDebugMode(true),
-		option.NewListDeadLetterSourceQueues().SetOptionHttp(option.Http{}),
+		option.NewListDeadLetterSourceQueues().SetHttpClient(option.HttpClient{}),
 		option.NewListDeadLetterSourceQueues().SetMaxResults(0),
 		option.NewListDeadLetterSourceQueues().SetNextToken(""),
 	}
@@ -946,7 +946,7 @@ func initOptionsListDeadLetterSourceQueues() []option.ListDeadLetterSourceQueues
 func initOptionsListDeadLetterSourceQueuesWithErr() []option.ListDeadLetterSourceQueues {
 	return []option.ListDeadLetterSourceQueues{
 		option.NewListDeadLetterSourceQueues().SetDebugMode(true),
-		option.NewListDeadLetterSourceQueues().SetOptionHttp(option.Http{}),
+		option.NewListDeadLetterSourceQueues().SetHttpClient(option.HttpClient{}),
 		option.NewListDeadLetterSourceQueues().SetMaxResults(10),
 		option.NewListDeadLetterSourceQueues().SetNextToken("token token"),
 	}
@@ -955,14 +955,14 @@ func initOptionsListDeadLetterSourceQueuesWithErr() []option.ListDeadLetterSourc
 func initOptionsDefault() []option.Default {
 	return []option.Default{
 		option.NewDefault().SetDebugMode(true),
-		option.NewDefault().SetOptionHttp(option.Http{}),
+		option.NewDefault().SetHttpClient(option.HttpClient{}),
 	}
 }
 
 func initOptionsListMessageMoveTasks() []option.ListMessageMoveTasks {
 	return []option.ListMessageMoveTasks{
 		option.NewListMessageMoveTasks().SetDebugMode(true),
-		option.NewListMessageMoveTasks().SetOptionHttp(option.Http{}),
+		option.NewListMessageMoveTasks().SetHttpClient(option.HttpClient{}),
 		option.NewListMessageMoveTasks().SetMaxResults(10),
 	}
 }
@@ -970,7 +970,7 @@ func initOptionsListMessageMoveTasks() []option.ListMessageMoveTasks {
 func initOptionsListMessageMoveTasksWithErr() []option.ListMessageMoveTasks {
 	return []option.ListMessageMoveTasks{
 		option.NewListMessageMoveTasks().SetDebugMode(true),
-		option.NewListMessageMoveTasks().SetOptionHttp(option.Http{}),
+		option.NewListMessageMoveTasks().SetHttpClient(option.HttpClient{}),
 		option.NewListMessageMoveTasks().SetMaxResults(0),
 	}
 }
