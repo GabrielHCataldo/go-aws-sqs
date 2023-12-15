@@ -3,11 +3,11 @@ package sqs
 import (
 	"context"
 	"fmt"
+	"github.com/GabrielHCataldo/go-aws-sqs/internal/client"
+	"github.com/GabrielHCataldo/go-aws-sqs/internal/util"
+	"github.com/GabrielHCataldo/go-aws-sqs/sqs/option"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	"go-aws-sqs/internal/client"
-	"go-aws-sqs/internal/util"
-	"go-aws-sqs/sqs/option"
 	"reflect"
 	"time"
 )
@@ -88,6 +88,11 @@ type HandlerConsumerFunc[Body, MessageAttributes any] func(ctx *Context[Body, Me
 
 // HandlerSimpleConsumerFunc is a function that consumes a message and returns an error if a failure occurs while processing the message.
 type HandlerSimpleConsumerFunc[Body any] func(ctx *SimpleContext[Body]) error
+
+type channelMessageProcessed struct {
+	Err    error
+	Signal *chan struct{}
+}
 
 var ctxInterrupt context.Context
 
@@ -238,6 +243,7 @@ func receiveMessage[Body, MessageAttributes any](
 		}
 		loggerInfo(opt.DebugMode, "Start process received messages size:", len(output.Messages))
 		processMessages[Body, MessageAttributes](queueUrl, output, handler, opt)
+		time.Sleep(opt.DelayQueryLoop)
 	}
 }
 
@@ -275,24 +281,59 @@ func processMessages[Body, MessageAttributes any](
 	handler HandlerConsumerFunc[Body, MessageAttributes],
 	opt option.Consumer,
 ) {
-	ctx, cancel := context.WithTimeout(context.TODO(), opt.ConsumerMessageTimeout)
-	defer cancel()
 	var count int
 	var mgsS, mgsF []string
 	for _, message := range output.Messages {
-		nCtx, err := prepareContextConsumer[Body, MessageAttributes](ctx, queueUrl, message)
-		if err != nil {
-			loggerErr(opt.DebugMode, "error prepare context to consumer:", err)
-			return
-		}
-		err = handler(nCtx)
-		appendMessagesByResult(nCtx.Message.Id, err, mgsS, mgsF)
-		if opt.DeleteMessageProcessedSuccess {
-			go deleteMessage(queueUrl, *message.ReceiptHandle)
-		}
+		mgsS, mgsF = processMessage(queueUrl, handler, message, opt)
 		count++
 	}
 	loggerInfo(opt.DebugMode, "Finish process messages!", "processed:", count, "success:", mgsS, "failed:", mgsF)
+}
+
+func processMessage[Body, MessageAttributes any](
+	queueUrl string,
+	handler HandlerConsumerFunc[Body, MessageAttributes],
+	message types.Message,
+	opt option.Consumer,
+) (mgsS, mgsF []string) {
+	ctx, cancel := context.WithTimeout(context.TODO(), opt.ConsumerMessageTimeout)
+	defer cancel()
+	ctxConsumer, err := prepareContextConsumer[Body, MessageAttributes](ctx, queueUrl, message)
+	if err != nil {
+		loggerErr(opt.DebugMode, "error prepare context to consumer:", err)
+		return
+	}
+	signal := make(chan struct{}, 1)
+	channel := channelMessageProcessed{
+		Signal: &signal,
+	}
+	go processHandler(ctxConsumer, handler, opt, &channel)
+	select {
+	case <-ctx.Done():
+		appendMessagesByResult(ctxConsumer.Message.Id, ctx.Err(), &mgsS, &mgsF)
+		break
+	case <-*channel.Signal:
+		appendMessagesByResult(*message.MessageId, channel.Err, &mgsS, &mgsF)
+		break
+	}
+	return mgsS, mgsF
+}
+
+func processHandler[Body, MessageAttributes any](
+	ctx *Context[Body, MessageAttributes],
+	handler HandlerConsumerFunc[Body, MessageAttributes],
+	opt option.Consumer,
+	channel *channelMessageProcessed,
+) {
+	err := handler(ctx)
+	if ctx.Err() != nil {
+		return
+	}
+	if err == nil && opt.DeleteMessageProcessedSuccess {
+		go deleteMessage(ctx.QueueUrl, ctx.Message.ReceiptHandle)
+	}
+	channel.Err = err
+	*channel.Signal <- struct{}{}
 }
 
 func prepareContextConsumer[Body, MessageAttributes any](
@@ -334,11 +375,11 @@ func prepareContextConsumer[Body, MessageAttributes any](
 	return ctxConsumer, nil
 }
 
-func appendMessagesByResult(messageId string, err error, mgsS, mgsF []string) {
+func appendMessagesByResult(messageId string, err error, mgsS, mgsF *[]string) {
 	if err != nil {
-		mgsF = append(mgsF, messageId)
+		*mgsF = append(*mgsF, messageId)
 	} else {
-		mgsS = append(mgsS, messageId)
+		*mgsS = append(*mgsS, messageId)
 	}
 }
 

@@ -3,26 +3,26 @@ package sqs
 import (
 	"context"
 	"errors"
+	"github.com/GabrielHCataldo/go-aws-sqs/sqs/option"
 	"github.com/GabrielHCataldo/go-logger/logger"
-	"go-aws-sqs/sqs/option"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 )
 
-const SqsQueueTestName = "SQS_QUEUE_TEST_NAME"
-const SqsQueueTestUrl = "SQS_QUEUE_TEST_URL"
-const SqsQueueTestStringArn = "SQS_QUEUE_TEST_STRING_ARN"
-const SqsQueueTestFifoUrl = "SQS_QUEUE_TEST_FIFO_URL"
-const SqsQueueTestEmptyUrl = "SQS_QUEUE_TEST_EMPTY_URL"
-const SqsQueueTestStringUrl = "SQS_QUEUE_TEST_STRING_URL"
-const SqsQueueTestDlqArn = "SQS_QUEUE_TEST_DLQ_ARN"
-const SqsQueueCreateTestName = "SQS_QUEUE_CREATE_TEST_NAME"
-const SqsQueueCreateTestUrl = "SQS_QUEUE_CREATE_TEST_URL"
-const SqsMessageId = "SQS_MESSAGE_ID"
-const SqsMessageReceiptHandle = "SQS_MESSAGE_RECEIPT_HANDLE"
-const SqsTaskHandle = "SQS_TASK_HANDLE"
+const sqsQueueTestName = "SQS_QUEUE_TEST_NAME"
+const sqsQueueTestUrl = "SQS_QUEUE_TEST_URL"
+const sqsQueueTestStringArn = "SQS_QUEUE_TEST_STRING_ARN"
+const sqsQueueTestFifoUrl = "SQS_QUEUE_TEST_FIFO_URL"
+const sqsQueueTestEmptyUrl = "SQS_QUEUE_TEST_EMPTY_URL"
+const sqsQueueTestStringUrl = "SQS_QUEUE_TEST_STRING_URL"
+const sqsQueueTestDlqArn = "SQS_QUEUE_TEST_DLQ_ARN"
+const sqsQueueCreateTestName = "SQS_QUEUE_CREATE_TEST_NAME"
+const sqsQueueCreateTestUrl = "SQS_QUEUE_CREATE_TEST_URL"
+const sqsMessageId = "SQS_MESSAGE_ID"
+const sqsMessageReceiptHandle = "SQS_MESSAGE_RECEIPT_HANDLE"
+const sqsTaskHandle = "SQS_TASK_HANDLE"
 
 type testProducer struct {
 	name     string
@@ -220,7 +220,7 @@ func initListTestProducer() []testProducer {
 	return []testProducer{
 		{
 			name:     "valid request",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetMessageAttributes(&msgAttTest),
@@ -232,7 +232,7 @@ func initListTestProducer() []testProducer {
 		},
 		{
 			name:     "valid request fifo",
-			queueUrl: os.Getenv(SqsQueueTestFifoUrl),
+			queueUrl: os.Getenv(sqsQueueTestFifoUrl),
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetDebugMode(true),
@@ -246,7 +246,7 @@ func initListTestProducer() []testProducer {
 		},
 		{
 			name:     "valid request async",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetMessageAttributes(initTestMap()),
@@ -263,7 +263,7 @@ func initListTestProducer() []testProducer {
 		},
 		{
 			name:     "invalid message attributes",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetMessageAttributes("test message string"),
@@ -273,7 +273,7 @@ func initListTestProducer() []testProducer {
 		},
 		{
 			name:     "invalid system message attributes",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetMessageSystemAttributes(option.MessageSystemAttributes{
@@ -285,7 +285,7 @@ func initListTestProducer() []testProducer {
 		},
 		{
 			name:     "empty message attributes",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetMessageAttributes(struct{}{}),
@@ -295,7 +295,7 @@ func initListTestProducer() []testProducer {
 		},
 		{
 			name:     "invalid map message attributes",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
 			opts: []option.Producer{
 				option.NewProducer().SetMessageAttributes(initInvalidTestMap()),
@@ -305,7 +305,7 @@ func initListTestProducer() []testProducer {
 		},
 		{
 			name:     "invalid message body",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        "",
 			wantErr:  true,
 		},
@@ -316,28 +316,28 @@ func initListTestConsumer[Body, MessageAttributes any]() []testConsumer[Body, Me
 	return []testConsumer[Body, MessageAttributes]{
 		{
 			name:     "success",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			handler:  initHandleConsumer[Body, MessageAttributes],
 			opts:     initOptionsConsumerDefault(),
 			wantErr:  false,
 		},
 		{
 			name:     "success fifo",
-			queueUrl: os.Getenv(SqsQueueTestFifoUrl),
+			queueUrl: os.Getenv(sqsQueueTestFifoUrl),
 			handler:  initHandleConsumer[Body, MessageAttributes],
 			opts:     initOptionsConsumerDefault(),
 			wantErr:  false,
 		},
 		{
 			name:     "success error consumer",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			handler:  initHandleConsumerWithErr[Body, MessageAttributes],
 			opts:     initOptionsConsumerDefault(),
 			wantErr:  false,
 		},
 		{
 			name:     "success async",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			handler:  initHandleConsumer[Body, MessageAttributes],
 			opts:     initOptionsConsumerDefault(),
 			async:    true,
@@ -345,7 +345,7 @@ func initListTestConsumer[Body, MessageAttributes any]() []testConsumer[Body, Me
 		},
 		{
 			name:     "success empty",
-			queueUrl: os.Getenv(SqsQueueTestEmptyUrl),
+			queueUrl: os.Getenv(sqsQueueTestEmptyUrl),
 			handler:  initHandleConsumer[Body, MessageAttributes],
 			opts:     initOptionsConsumerDefault(),
 			async:    false,
@@ -353,7 +353,7 @@ func initListTestConsumer[Body, MessageAttributes any]() []testConsumer[Body, Me
 		},
 		{
 			name:     "failed parse body",
-			queueUrl: os.Getenv(SqsQueueTestStringUrl),
+			queueUrl: os.Getenv(sqsQueueTestStringUrl),
 			handler:  initHandleConsumer[Body, MessageAttributes],
 			opts:     initOptionsConsumerDefault(),
 			async:    false,
@@ -373,21 +373,21 @@ func initListTestSimpleConsumer[Body any]() []testSimpleConsumer[Body] {
 	return []testSimpleConsumer[Body]{
 		{
 			name:     "success",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			handler:  initSimpleHandleConsumer[Body],
 			opts:     initOptionsConsumerDefault(),
 			wantErr:  false,
 		},
 		{
 			name:     "success error consumer",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			handler:  initSimpleHandleConsumerWithErr[Body],
 			opts:     initOptionsConsumerDefault(),
 			wantErr:  false,
 		},
 		{
 			name:     "success async",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			handler:  initSimpleHandleConsumer[Body],
 			opts:     initOptionsConsumerDefault(),
 			async:    true,
@@ -395,8 +395,16 @@ func initListTestSimpleConsumer[Body any]() []testSimpleConsumer[Body] {
 		},
 		{
 			name:     "failed parse body",
-			queueUrl: os.Getenv(SqsQueueTestStringUrl),
+			queueUrl: os.Getenv(sqsQueueTestStringUrl),
 			handler:  initSimpleHandleConsumer[Body],
+			opts:     initOptionsConsumerDefault(),
+			async:    false,
+			wantErr:  false,
+		},
+		{
+			name:     "failed timeout",
+			queueUrl: os.Getenv(sqsQueueTestUrl),
+			handler:  initSimpleHandleConsumerTimeout[Body],
 			opts:     initOptionsConsumerDefault(),
 			async:    false,
 			wantErr:  false,
@@ -432,7 +440,7 @@ func initListTestDeleteQueue() []testDeleteQueue {
 	return []testDeleteQueue{
 		{
 			name:     "success",
-			queueUrl: os.Getenv(SqsQueueCreateTestUrl),
+			queueUrl: os.Getenv(sqsQueueCreateTestUrl),
 			opts:     initOptionsDefault(),
 			wantErr:  false,
 		},
@@ -500,7 +508,7 @@ func initListTestPurgeQueue() []testPurgeQueue {
 	return []testPurgeQueue{
 		{
 			name:     "success",
-			queueUrl: os.Getenv(SqsQueueCreateTestUrl),
+			queueUrl: os.Getenv(sqsQueueCreateTestUrl),
 			opts:     initOptionsDefault(),
 			wantErr:  false,
 		},
@@ -551,7 +559,7 @@ func initListTestListQueueTags() []testListQueueTags {
 	return []testListQueueTags{
 		{
 			name:     "success",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			opts:     initOptionsDefault(),
 			wantErr:  false,
 		},
@@ -568,7 +576,7 @@ func initListTestListDeadLetterSourceQueues() []testListDeadLetterSourceQueues {
 	return []testListDeadLetterSourceQueues{
 		{
 			name:     "success",
-			queueUrl: os.Getenv(SqsQueueTestUrl),
+			queueUrl: os.Getenv(sqsQueueTestUrl),
 			opts:     initOptionsListDeadLetterSourceQueues(),
 			wantErr:  false,
 		},
@@ -600,8 +608,8 @@ func initListTestDeleteMessage() []testDeleteMessage {
 	return []testDeleteMessage{
 		{
 			name:          "success",
-			queueUrl:      os.Getenv(SqsQueueTestStringUrl),
-			receiptHandle: os.Getenv(SqsMessageReceiptHandle),
+			queueUrl:      os.Getenv(sqsQueueTestStringUrl),
+			receiptHandle: os.Getenv(sqsMessageReceiptHandle),
 			opts:          initOptionsDefault(),
 			wantErr:       false,
 		},
@@ -620,11 +628,11 @@ func initListTestDeleteMessageBatch() []testDeleteMessageBatch {
 		{
 			name: "success",
 			input: DeleteMessageBatchInput{
-				QueueUrl: os.Getenv(SqsQueueTestStringUrl),
+				QueueUrl: os.Getenv(sqsQueueTestStringUrl),
 				Entries: []DeleteMessageBatchRequestEntry{
 					{
-						Id:            os.Getenv(SqsMessageId),
-						ReceiptHandle: os.Getenv(SqsMessageReceiptHandle),
+						Id:            os.Getenv(sqsMessageId),
+						ReceiptHandle: os.Getenv(sqsMessageReceiptHandle),
 					},
 				},
 			},
@@ -648,8 +656,8 @@ func initListTestChangeMessageVisibility() []testChangeMessageVisibility {
 		{
 			name: "success",
 			input: ChangeMessageVisibilityInput{
-				QueueUrl:          os.Getenv(SqsQueueTestStringUrl),
-				ReceiptHandle:     os.Getenv(SqsMessageReceiptHandle),
+				QueueUrl:          os.Getenv(sqsQueueTestStringUrl),
+				ReceiptHandle:     os.Getenv(sqsMessageReceiptHandle),
 				VisibilityTimeout: 1,
 			},
 			opts:    initOptionsDefault(),
@@ -671,11 +679,11 @@ func initListTestChangeMessageVisibilityBatch() []testChangeMessageVisibilityBat
 		{
 			name: "success",
 			input: ChangeMessageVisibilityBatchInput{
-				QueueUrl: os.Getenv(SqsQueueTestStringUrl),
+				QueueUrl: os.Getenv(sqsQueueTestStringUrl),
 				Entries: []ChangeMessageVisibilityBatchRequestEntry{
 					{
-						Id:                os.Getenv(SqsMessageId),
-						ReceiptHandle:     os.Getenv(SqsMessageReceiptHandle),
+						Id:                os.Getenv(sqsMessageId),
+						ReceiptHandle:     os.Getenv(sqsMessageReceiptHandle),
 						VisibilityTimeout: 3,
 					},
 				},
@@ -717,7 +725,7 @@ func initListTestCancelMessageMoveTask() []testCancelMessageMoveTask {
 	return []testCancelMessageMoveTask{
 		{
 			name:       "success",
-			taskHandle: os.Getenv(SqsTaskHandle),
+			taskHandle: os.Getenv(sqsTaskHandle),
 			opts:       initOptionsDefault(),
 			wantErr:    false,
 		},
@@ -734,7 +742,7 @@ func initListTestListMessageMoveTask() []testListMessageMoveTask {
 	return []testListMessageMoveTask{
 		{
 			name:      "success",
-			sourceArn: os.Getenv(SqsQueueTestStringArn),
+			sourceArn: os.Getenv(sqsQueueTestStringArn),
 			opts:      initOptionsListMessageMoveTasks(),
 			wantErr:   false,
 		},
@@ -811,6 +819,12 @@ func initSimpleHandleConsumer[Body any](ctx *SimpleContext[Body]) error {
 	return nil
 }
 
+func initSimpleHandleConsumerTimeout[Body any](ctx *SimpleContext[Body]) error {
+	logger.Debug("ctx:", ctx)
+	time.Sleep(30 * time.Second)
+	return nil
+}
+
 func initHandleConsumerWithErr[Body, MessageAttributes any](ctx *Context[Body, MessageAttributes]) error {
 	logger.Debug("ctx:", ctx)
 	return initErrorConsumer()
@@ -827,35 +841,35 @@ func initErrorConsumer() error {
 
 func initTagQueueInput() TagQueueInput {
 	return TagQueueInput{
-		QueueUrl: os.Getenv(SqsQueueCreateTestUrl),
+		QueueUrl: os.Getenv(sqsQueueCreateTestUrl),
 		Tags:     initTagsQueue(),
 	}
 }
 
 func initSetQueueAttributesInput() SetQueueAttributesInput {
 	return SetQueueAttributesInput{
-		QueueUrl:   os.Getenv(SqsQueueCreateTestUrl),
+		QueueUrl:   os.Getenv(sqsQueueCreateTestUrl),
 		Attributes: initAttributesQueue("900"),
 	}
 }
 
 func initUntagQueueInput() UntagQueueInput {
 	return UntagQueueInput{
-		QueueUrl: os.Getenv(SqsQueueCreateTestUrl),
+		QueueUrl: os.Getenv(sqsQueueCreateTestUrl),
 		TagKeys:  []string{"tag-test"},
 	}
 }
 
 func initGetQueueUrlInput() GetQueueUrlInput {
 	return GetQueueUrlInput{
-		QueueName:              os.Getenv(SqsQueueTestName),
+		QueueName:              os.Getenv(sqsQueueTestName),
 		QueueOwnerAWSAccountId: nil,
 	}
 }
 
 func initGetQueueAttributesInput() GetQueueAttributesInput {
 	return GetQueueAttributesInput{
-		QueueUrl:       os.Getenv(SqsQueueTestUrl),
+		QueueUrl:       os.Getenv(sqsQueueTestUrl),
 		AttributeNames: nil,
 	}
 }
@@ -871,7 +885,7 @@ func initAttributesQueue(delaySeconds string) map[string]string {
 func initStartMessageMoveTaskInput() StartMessageMoveTaskInput {
 	maxNumberOfMessagesPerSecond := int32(1)
 	return StartMessageMoveTaskInput{
-		SourceArn:                    os.Getenv(SqsQueueTestDlqArn),
+		SourceArn:                    os.Getenv(sqsQueueTestDlqArn),
 		DestinationArn:               nil,
 		MaxNumberOfMessagesPerSecond: &maxNumberOfMessagesPerSecond,
 	}
@@ -979,16 +993,16 @@ func initMessageString() {
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 	opt := option.NewProducer().SetMessageAttributes(initMessageAttTest())
-	output, err := SendMessage(ctx, os.Getenv(SqsQueueTestStringUrl), "test body string", opt)
+	output, err := SendMessage(ctx, os.Getenv(sqsQueueTestStringUrl), "test body string", opt)
 	if err != nil {
 		logger.Error("error send message:", err)
 		return
 	}
-	_ = os.Setenv(SqsMessageId, *output.MessageId)
+	_ = os.Setenv(sqsMessageId, *output.MessageId)
 }
 
 func initMessageStruct(queueUrl string) {
-	if queueUrl != os.Getenv(SqsQueueTestUrl) && queueUrl != os.Getenv(SqsQueueTestFifoUrl) {
+	if queueUrl != os.Getenv(sqsQueueTestUrl) && queueUrl != os.Getenv(sqsQueueTestFifoUrl) {
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
@@ -1010,8 +1024,8 @@ func initMessageReceiptHandle() {
 		SetMaxNumberOfMessages(1).
 		SetVisibilityTimeout(0).
 		SetDeleteMessageProcessedSuccess(false)
-	SimpleReceiveMessage[any](os.Getenv(SqsQueueTestStringUrl), func(ctx *SimpleContext[any]) error {
-		_ = os.Setenv(SqsMessageReceiptHandle, ctx.Message.ReceiptHandle)
+	SimpleReceiveMessage[any](os.Getenv(sqsQueueTestStringUrl), func(ctx *SimpleContext[any]) error {
+		_ = os.Setenv(sqsMessageReceiptHandle, ctx.Message.ReceiptHandle)
 		cancel()
 		return nil
 	}, opt)
@@ -1028,8 +1042,8 @@ func initQueueCreateTest() {
 		logger.Error("error create test-queue:", err)
 		return
 	}
-	_ = os.Setenv(SqsQueueCreateTestName, name)
-	_ = os.Setenv(SqsQueueCreateTestUrl, *output.QueueUrl)
+	_ = os.Setenv(sqsQueueCreateTestName, name)
+	_ = os.Setenv(sqsQueueCreateTestUrl, *output.QueueUrl)
 }
 
 func initStartMessageMoveTask() {
@@ -1041,40 +1055,40 @@ func initStartMessageMoveTask() {
 		logger.Error("error start message move task:", err)
 		return
 	}
-	_ = os.Setenv(SqsTaskHandle, *output.TaskHandle)
+	_ = os.Setenv(sqsTaskHandle, *output.TaskHandle)
 }
 
 func deleteQueueCreateTest() {
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
-	url := os.Getenv(SqsQueueCreateTestUrl)
+	url := os.Getenv(sqsQueueCreateTestUrl)
 	if len(url) == 0 {
 		return
 	}
-	_, _ = DeleteQueue(ctx, os.Getenv(SqsQueueCreateTestUrl))
+	_, _ = DeleteQueue(ctx, os.Getenv(sqsQueueCreateTestUrl))
 }
 
 func purgeQueues() {
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
-	urlString := os.Getenv(SqsQueueTestStringUrl)
-	urlFifo := os.Getenv(SqsQueueTestFifoUrl)
+	urlString := os.Getenv(sqsQueueTestStringUrl)
+	urlFifo := os.Getenv(sqsQueueTestFifoUrl)
 	if len(urlString) != 0 {
-		_, _ = PurgeQueue(ctx, os.Getenv(SqsQueueTestStringUrl))
+		_, _ = PurgeQueue(ctx, os.Getenv(sqsQueueTestStringUrl))
 	}
 	if len(urlFifo) != 0 {
-		_, _ = PurgeQueue(ctx, os.Getenv(SqsQueueTestFifoUrl))
+		_, _ = PurgeQueue(ctx, os.Getenv(sqsQueueTestFifoUrl))
 	}
 }
 
 func cancelMessageMoveTaskTest() {
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
-	taskHandle := os.Getenv(SqsTaskHandle)
+	taskHandle := os.Getenv(sqsTaskHandle)
 	if len(taskHandle) == 0 {
 		return
 	}
-	_, _ = CancelMessageMoveTask(ctx, os.Getenv(SqsTaskHandle))
+	_, _ = CancelMessageMoveTask(ctx, os.Getenv(sqsTaskHandle))
 
 }
 

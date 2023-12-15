@@ -2,11 +2,11 @@ package sqs
 
 import (
 	"context"
+	"github.com/GabrielHCataldo/go-aws-sqs/internal/client"
+	"github.com/GabrielHCataldo/go-aws-sqs/internal/util"
+	"github.com/GabrielHCataldo/go-aws-sqs/sqs/option"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	"go-aws-sqs/internal/client"
-	"go-aws-sqs/internal/util"
-	"go-aws-sqs/sqs/option"
 	"time"
 )
 

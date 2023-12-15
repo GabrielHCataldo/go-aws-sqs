@@ -1,6 +1,6 @@
-module go-aws-sqs
+module github.com/GabrielHCataldo/go-aws-sqs
 
-go 1.21
+go 1.21.3
 
 require (
 	github.com/GabrielHCataldo/go-logger v1.0.8

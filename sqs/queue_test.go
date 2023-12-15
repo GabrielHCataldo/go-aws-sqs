@@ -17,8 +17,8 @@ func TestCreateQueue(t *testing.T) {
 				t.Errorf("CreateQueue() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			} else if output != nil && output.QueueUrl != nil {
-				_ = os.Setenv(SqsQueueCreateTestName, tt.queueName)
-				_ = os.Setenv(SqsQueueCreateTestUrl, *output.QueueUrl)
+				_ = os.Setenv(sqsQueueCreateTestName, tt.queueName)
+				_ = os.Setenv(sqsQueueCreateTestUrl, *output.QueueUrl)
 				deleteQueueCreateTest()
 			}
 		})

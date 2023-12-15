@@ -1,7 +1,8 @@
 package option
 
 import (
-	"go-aws-sqs/internal/util"
+	"github.com/GabrielHCataldo/go-aws-sqs/internal/util"
+	"reflect"
 	"time"
 )
 
@@ -32,7 +33,7 @@ type Producer struct {
 	//   - Every message must have a unique MessageDeduplicationId ,
 	//   - You may provide a MessageDeduplicationId explicitly.
 	//   - If you aren't able to provide a MessageDeduplicationId and you enable
-	//   ContentBasedDeduplication for your queue, Amazon SQS uses a SHA-256 hash to
+	//   ContentBasedDeduplication for your queue, Amazon SQS uses an SHA-256 hash to
 	//   generate the MessageDeduplicationId using the body of the message (but not the
 	//   attributes of the message).
 	//   - If you don't provide a MessageDeduplicationId and the queue doesn't have
@@ -136,7 +137,9 @@ func GetProducerByParams(opts []Producer) Producer {
 		if util.IsValidType(opt.MessageAttributes) {
 			result.MessageAttributes = opt.MessageAttributes
 		}
-		if util.IsValidType(opt.MessageSystemAttributes) {
+		if util.IsValidType(opt.MessageSystemAttributes) &&
+			!util.IsZeroReflect(reflect.ValueOf(opt.MessageSystemAttributes)) &&
+			len(opt.MessageSystemAttributes.AWSTraceHeader) != 0 {
 			result.MessageSystemAttributes = opt.MessageSystemAttributes
 		}
 		if opt.MessageDeduplicationId != nil && len(*opt.MessageDeduplicationId) != 0 {

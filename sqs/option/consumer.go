@@ -4,10 +4,16 @@ import "time"
 
 type Consumer struct {
 	Default
+	// If true remove the message from the queue after successfully processed (handler error return is null)
+	//
 	// default: false
 	DeleteMessageProcessedSuccess bool
+	// Duration time to process the message, timeout applied in the past context.
+	//
 	// default: 5 seconds
 	ConsumerMessageTimeout time.Duration
+	// Delay to run the next search for messages in the queue
+	//
 	// default: 5 seconds
 	DelayQueryLoop time.Duration
 	// The maximum number of messages to return. Amazon SQS never returns more

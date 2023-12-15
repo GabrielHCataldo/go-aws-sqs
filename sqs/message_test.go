@@ -74,7 +74,7 @@ func TestStartMessageMoveTask(t *testing.T) {
 				t.Errorf("StartMessageMoveTask() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			} else if output != nil && output.TaskHandle != nil {
-				_ = os.Setenv(SqsTaskHandle, *output.TaskHandle)
+				_ = os.Setenv(sqsTaskHandle, *output.TaskHandle)
 				cancelMessageMoveTaskTest()
 			}
 		})
