@@ -138,22 +138,22 @@ func GetConsumerByParams(opts []Consumer) Consumer {
 		if opt.DeleteMessageProcessedSuccess {
 			result.DeleteMessageProcessedSuccess = opt.DeleteMessageProcessedSuccess
 		}
-		if opt.ConsumerMessageTimeout.Seconds() > 0 {
+		if opt.ConsumerMessageTimeout > 0 {
 			result.ConsumerMessageTimeout = opt.ConsumerMessageTimeout
 		}
-		if opt.DelayQueryLoop.Seconds() > 0 {
+		if opt.DelayQueryLoop > 0 {
 			result.DelayQueryLoop = opt.DelayQueryLoop
 		}
 		if opt.MaxNumberOfMessages > 0 {
 			result.MaxNumberOfMessages = opt.MaxNumberOfMessages
 		}
-		if opt.VisibilityTimeout.Seconds() > 0 {
+		if opt.VisibilityTimeout > 0 {
 			result.VisibilityTimeout = opt.VisibilityTimeout
 		}
 		if opt.ReceiveRequestAttemptId != nil && len(*opt.ReceiveRequestAttemptId) != 0 {
 			result.ReceiveRequestAttemptId = opt.ReceiveRequestAttemptId
 		}
-		if opt.WaitTimeSeconds.Seconds() > 0 {
+		if opt.WaitTimeSeconds > 0 {
 			result.WaitTimeSeconds = opt.WaitTimeSeconds
 		}
 	}
