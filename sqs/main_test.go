@@ -3,7 +3,7 @@ package sqs
 import (
 	"context"
 	"errors"
-	"github.com/GabrielHCataldo/go-aws-sqs/sqs/option"
+	"github.com/GabrielHCataldo/go-aws-sqs-template/sqs/option"
 	"github.com/GabrielHCataldo/go-logger/logger"
 	"os"
 	"strconv"
@@ -1093,5 +1093,5 @@ func cancelMessageMoveTaskTest() {
 }
 
 func getSqsCreateQueueTest() string {
-	return "go-aws-sqs-test-create-queue-" + strconv.Itoa(int(time.Now().UnixNano()))
+	return "go-aws-sqs-template-test-create-queue-" + strconv.Itoa(int(time.Now().UnixNano()))
 }

@@ -1,7 +1,7 @@
 package option
 
 import (
-	"github.com/GabrielHCataldo/go-aws-sqs/internal/util"
+	"github.com/GabrielHCataldo/go-aws-sqs-template/internal/util"
 	"reflect"
 	"time"
 )

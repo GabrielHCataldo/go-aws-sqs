@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/GabrielHCataldo/go-aws-sqs/sqs"
-	"github.com/GabrielHCataldo/go-aws-sqs/sqs/option"
+	"github.com/GabrielHCataldo/go-aws-sqs-template/sqs"
+	"github.com/GabrielHCataldo/go-aws-sqs-template/sqs/option"
 	"github.com/GabrielHCataldo/go-logger/logger"
 	"os"
 	"time"

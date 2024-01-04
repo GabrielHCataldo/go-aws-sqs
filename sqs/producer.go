@@ -3,9 +3,9 @@ package sqs
 import (
 	"context"
 	"errors"
-	"github.com/GabrielHCataldo/go-aws-sqs/internal/client"
-	"github.com/GabrielHCataldo/go-aws-sqs/internal/util"
-	"github.com/GabrielHCataldo/go-aws-sqs/sqs/option"
+	"github.com/GabrielHCataldo/go-aws-sqs-template/internal/client"
+	"github.com/GabrielHCataldo/go-aws-sqs-template/internal/util"
+	"github.com/GabrielHCataldo/go-aws-sqs-template/sqs/option"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
@@ -187,16 +187,16 @@ func convertReflectToMessageAttributeValue(v reflect.Value) *types.MessageAttrib
 	if v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface {
 		v = v.Elem()
 	}
-	result := types.MessageAttributeValue{}
+	var result *types.MessageAttributeValue
 	dataType := util.GetDataType(v.Interface())
-	result.DataType = &dataType
 	if dataType == "String" || dataType == "Number" {
+		result = &types.MessageAttributeValue{}
+		result.DataType = &dataType
 		strValue := util.ConvertToString(v.Interface())
 		if len(strValue) == 0 {
 			return nil
 		}
 		result.StringValue = &strValue
-		return &result
 	}
-	return nil
+	return result
 }

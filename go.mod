@@ -1,4 +1,4 @@
-module github.com/GabrielHCataldo/go-aws-sqs
+module github.com/GabrielHCataldo/go-aws-sqs-template
 
 go 1.21.3
 
