@@ -7,7 +7,8 @@ AWS SQS Template
 [![Go Report Card](https://goreportcard.com/badge/github.com/GabrielHCataldo/go-aws-sqs-template)](https://goreportcard.com/report/github.com/GabrielHCataldo/go-aws-sqs-template)
 [![Coverage Status](https://coveralls.io/repos/GabrielHCataldo/go-aws-sqs-template/badge.svg?branch=main&service=github)](https://coveralls.io/github/GabrielHCataldo/go-aws-sqs-template?branch=main)
 [![Open Source Helpers](https://www.codetriage.com/gabrielhcataldo/go-aws-sqs-template/badges/users.svg)](https://www.codetriage.com/gabrielhcataldo/go-aws-sqs-template)
-[![AWS SDK](https://badgen.net/badge/AWS/SDK/orange)](https://github.com/aws/aws-sdk-go-v2)
+[![AwsSdk](https://badgen.net/badge/aws/sdk/orange)](https://github.com/aws/aws-sdk-go-v2)
+[![AwsDoc](https://badgen.net/badge/aws/doc/orange)](https://docs.aws.amazon.com/sdk-for-go/api/)
 [![GoDoc](https://godoc.org/github/GabrielHCataldo/go-aws-sqs-template?status.svg)](https://pkg.go.dev/github.com/GabrielHCataldo/go-aws-sqs-template/sqs)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
