@@ -223,6 +223,7 @@ func initListTestProducer() []testProducer {
 			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
 			opts: []*option.Producer{
+				nil,
 				option.NewProducer().SetMessageAttributes(&msgAttTest),
 				option.NewProducer().SetDelaySeconds(2 * time.Second),
 				option.NewProducer().SetDebugMode(true),
