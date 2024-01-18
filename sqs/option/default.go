@@ -7,26 +7,28 @@ type Default struct {
 	DebugMode bool `json:"debugMode,omitempty"`
 }
 
-func NewDefault() Default {
-	return Default{}
+func NewDefault() *Default {
+	return &Default{}
 }
 
-func (o Default) SetDebugMode(b bool) Default {
-	o.DebugMode = b
-	return o
+func (d *Default) SetDebugMode(b bool) *Default {
+	d.DebugMode = b
+	return d
 }
 
-func (o Default) SetHttpClient(httpClient HttpClient) Default {
-	o.HttpClient = &httpClient
-	return o
+func (d *Default) SetHttpClient(httpClient HttpClient) *Default {
+	d.HttpClient = &httpClient
+	return d
 }
 
-func GetDefaultByParams(opts []Default) Default {
+func GetDefaultByParams(opts []*Default) *Default {
 	var result Default
 	for _, opt := range opts {
-		fillDefaultFields(opt, &result)
+		if opt != nil {
+			fillDefaultFields(*opt, &result)
+		}
 	}
-	return result
+	return &result
 }
 
 func fillDefaultFields(opt Default, dest *Default) {

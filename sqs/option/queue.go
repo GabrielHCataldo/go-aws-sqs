@@ -168,86 +168,89 @@ type ListDeadLetterSourceQueues struct {
 	NextToken *string
 }
 
-func NewCreateQueue() CreateQueue {
-	return CreateQueue{}
+func NewCreateQueue() *CreateQueue {
+	return &CreateQueue{}
 }
 
-func NewListQueue() ListQueues {
-	return ListQueues{}
+func NewListQueue() *ListQueues {
+	return &ListQueues{}
 }
 
-func NewListDeadLetterSourceQueues() ListDeadLetterSourceQueues {
-	return ListDeadLetterSourceQueues{}
+func NewListDeadLetterSourceQueues() *ListDeadLetterSourceQueues {
+	return &ListDeadLetterSourceQueues{}
 }
 
-func (o CreateQueue) SetAttributes(m map[string]string) CreateQueue {
-	o.Attributes = m
-	return o
+func (c *CreateQueue) SetAttributes(m map[string]string) *CreateQueue {
+	c.Attributes = m
+	return c
 }
 
-func (o CreateQueue) SetTags(m map[string]string) CreateQueue {
-	o.Tags = m
-	return o
+func (c *CreateQueue) SetTags(m map[string]string) *CreateQueue {
+	c.Tags = m
+	return c
 }
 
-func (o CreateQueue) SetDebugMode(b bool) CreateQueue {
-	o.DebugMode = b
-	return o
+func (c *CreateQueue) SetDebugMode(b bool) *CreateQueue {
+	c.DebugMode = b
+	return c
 }
 
-func (o CreateQueue) SetHttpClient(opt HttpClient) CreateQueue {
-	o.HttpClient = &opt
-	return o
+func (c *CreateQueue) SetHttpClient(opt HttpClient) *CreateQueue {
+	c.HttpClient = &opt
+	return c
 }
 
-func (o ListQueues) SetDebugMode(b bool) ListQueues {
-	o.DebugMode = b
-	return o
+func (l *ListQueues) SetDebugMode(b bool) *ListQueues {
+	l.DebugMode = b
+	return l
 }
 
-func (o ListQueues) SetHttpClient(opt HttpClient) ListQueues {
-	o.HttpClient = &opt
-	return o
+func (l *ListQueues) SetHttpClient(opt HttpClient) *ListQueues {
+	l.HttpClient = &opt
+	return l
 }
 
-func (o ListQueues) SetMaxResults(i int32) ListQueues {
-	o.MaxResults = i
-	return o
+func (l *ListQueues) SetMaxResults(i int32) *ListQueues {
+	l.MaxResults = i
+	return l
 }
 
-func (o ListQueues) SetNextToken(nextToken string) ListQueues {
-	o.NextToken = &nextToken
-	return o
+func (l *ListQueues) SetNextToken(nextToken string) *ListQueues {
+	l.NextToken = &nextToken
+	return l
 }
 
-func (o ListQueues) SetQueueNamePrefix(queueNamePrefix string) ListQueues {
-	o.QueueNamePrefix = &queueNamePrefix
-	return o
+func (l *ListQueues) SetQueueNamePrefix(queueNamePrefix string) *ListQueues {
+	l.QueueNamePrefix = &queueNamePrefix
+	return l
 }
 
-func (o ListDeadLetterSourceQueues) SetDebugMode(b bool) ListDeadLetterSourceQueues {
-	o.DebugMode = b
-	return o
+func (l *ListDeadLetterSourceQueues) SetDebugMode(b bool) *ListDeadLetterSourceQueues {
+	l.DebugMode = b
+	return l
 }
 
-func (o ListDeadLetterSourceQueues) SetHttpClient(opt HttpClient) ListDeadLetterSourceQueues {
-	o.HttpClient = &opt
-	return o
+func (l *ListDeadLetterSourceQueues) SetHttpClient(opt HttpClient) *ListDeadLetterSourceQueues {
+	l.HttpClient = &opt
+	return l
 }
 
-func (o ListDeadLetterSourceQueues) SetMaxResults(i int32) ListDeadLetterSourceQueues {
-	o.MaxResults = i
-	return o
+func (l *ListDeadLetterSourceQueues) SetMaxResults(i int32) *ListDeadLetterSourceQueues {
+	l.MaxResults = i
+	return l
 }
 
-func (o ListDeadLetterSourceQueues) SetNextToken(nextToken string) ListDeadLetterSourceQueues {
-	o.NextToken = &nextToken
-	return o
+func (l *ListDeadLetterSourceQueues) SetNextToken(nextToken string) *ListDeadLetterSourceQueues {
+	l.NextToken = &nextToken
+	return l
 }
 
-func GetCreateQueueByParams(opts []CreateQueue) CreateQueue {
+func GetCreateQueueByParams(opts []*CreateQueue) *CreateQueue {
 	var result CreateQueue
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		fillDefaultFields(opt.Default, &result.Default)
 		if opt.Attributes != nil && len(opt.Attributes) > 0 {
 			result.Attributes = opt.Attributes
@@ -256,12 +259,15 @@ func GetCreateQueueByParams(opts []CreateQueue) CreateQueue {
 			result.Tags = opt.Tags
 		}
 	}
-	return result
+	return &result
 }
 
-func GetListQueuesByParams(opts []ListQueues) ListQueues {
+func GetListQueuesByParams(opts []*ListQueues) *ListQueues {
 	var result ListQueues
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		fillDefaultFields(opt.Default, &result.Default)
 		if opt.MaxResults > 0 {
 			result.MaxResults = opt.MaxResults
@@ -273,12 +279,15 @@ func GetListQueuesByParams(opts []ListQueues) ListQueues {
 			result.QueueNamePrefix = opt.QueueNamePrefix
 		}
 	}
-	return result
+	return &result
 }
 
-func GetListDeadLetterSourceQueuesByParams(opts []ListDeadLetterSourceQueues) ListDeadLetterSourceQueues {
+func GetListDeadLetterSourceQueuesByParams(opts []*ListDeadLetterSourceQueues) *ListDeadLetterSourceQueues {
 	var result ListDeadLetterSourceQueues
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		fillDefaultFields(opt.Default, &result.Default)
 		if opt.MaxResults > 0 {
 			result.MaxResults = opt.MaxResults
@@ -290,5 +299,5 @@ func GetListDeadLetterSourceQueuesByParams(opts []ListDeadLetterSourceQueues) Li
 	if result.MaxResults == 0 {
 		result.MaxResults = 100
 	}
-	return result
+	return &result
 }

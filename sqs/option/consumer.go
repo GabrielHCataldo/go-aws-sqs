@@ -82,58 +82,61 @@ type Consumer struct {
 	WaitTimeSeconds time.Duration
 }
 
-func NewConsumer() Consumer {
-	return Consumer{}
+func NewConsumer() *Consumer {
+	return &Consumer{}
 }
 
-func (o Consumer) SetDeleteMessageProcessedSuccess(b bool) Consumer {
+func (o *Consumer) SetDeleteMessageProcessedSuccess(b bool) *Consumer {
 	o.DeleteMessageProcessedSuccess = b
 	return o
 }
 
-func (o Consumer) SetConsumerMessageTimeout(d time.Duration) Consumer {
+func (o *Consumer) SetConsumerMessageTimeout(d time.Duration) *Consumer {
 	o.ConsumerMessageTimeout = d
 	return o
 }
 
-func (o Consumer) SetMaxNumberOfMessages(i int32) Consumer {
+func (o *Consumer) SetMaxNumberOfMessages(i int32) *Consumer {
 	o.MaxNumberOfMessages = i
 	return o
 }
 
-func (o Consumer) SetDelayQueryLoop(d time.Duration) Consumer {
+func (o *Consumer) SetDelayQueryLoop(d time.Duration) *Consumer {
 	o.DelayQueryLoop = d
 	return o
 }
 
-func (o Consumer) SetReceiveRequestAttemptId(s string) Consumer {
+func (o *Consumer) SetReceiveRequestAttemptId(s string) *Consumer {
 	o.ReceiveRequestAttemptId = &s
 	return o
 }
 
-func (o Consumer) SetVisibilityTimeout(d time.Duration) Consumer {
+func (o *Consumer) SetVisibilityTimeout(d time.Duration) *Consumer {
 	o.VisibilityTimeout = d
 	return o
 }
 
-func (o Consumer) SetWaitTimeSeconds(d time.Duration) Consumer {
+func (o *Consumer) SetWaitTimeSeconds(d time.Duration) *Consumer {
 	o.WaitTimeSeconds = d
 	return o
 }
 
-func (o Consumer) SetDebugMode(b bool) Consumer {
+func (o *Consumer) SetDebugMode(b bool) *Consumer {
 	o.DebugMode = b
 	return o
 }
 
-func (o Consumer) SetHttpClient(opt HttpClient) Consumer {
+func (o *Consumer) SetHttpClient(opt HttpClient) *Consumer {
 	o.HttpClient = &opt
 	return o
 }
 
-func GetConsumerByParams(opts []Consumer) Consumer {
+func GetConsumerByParams(opts []*Consumer) *Consumer {
 	var result Consumer
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		fillDefaultFields(opt.Default, &result.Default)
 		if opt.DeleteMessageProcessedSuccess {
 			result.DeleteMessageProcessedSuccess = opt.DeleteMessageProcessedSuccess
@@ -166,5 +169,5 @@ func GetConsumerByParams(opts []Consumer) Consumer {
 	if result.DelayQueryLoop.Seconds() == 0 {
 		result.DelayQueryLoop = 5 * time.Second
 	}
-	return result
+	return &result
 }

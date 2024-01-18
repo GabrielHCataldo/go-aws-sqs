@@ -119,7 +119,7 @@ var ctxInterrupt context.Context
 func ReceiveMessage[Body, MessageAttributes any](
 	queueUrl string,
 	handler HandlerConsumerFunc[Body, MessageAttributes],
-	opts ...option.Consumer,
+	opts ...*option.Consumer,
 ) {
 	receiveMessage(queueUrl, handler, option.GetConsumerByParams(opts))
 }
@@ -149,7 +149,7 @@ func ReceiveMessage[Body, MessageAttributes any](
 func ReceiveMessageAsync[Body, MessageAttributes any](
 	queueUrl string,
 	handler HandlerConsumerFunc[Body, MessageAttributes],
-	opts ...option.Consumer,
+	opts ...*option.Consumer,
 ) {
 	go receiveMessage(queueUrl, handler, option.GetConsumerByParams(opts))
 }
@@ -176,7 +176,7 @@ func ReceiveMessageAsync[Body, MessageAttributes any](
 func SimpleReceiveMessage[Body any](
 	queueUrl string,
 	simpleHandle HandlerSimpleConsumerFunc[Body],
-	opts ...option.Consumer,
+	opts ...*option.Consumer,
 ) {
 	handler := initHandleConsumerFunc(simpleHandle)
 	receiveMessage(queueUrl, handler, option.GetConsumerByParams(opts))
@@ -206,7 +206,7 @@ func SimpleReceiveMessage[Body any](
 func SimpleReceiveMessageAsync[Body any](
 	queueUrl string,
 	simpleHandle HandlerSimpleConsumerFunc[Body],
-	opts ...option.Consumer,
+	opts ...*option.Consumer,
 ) {
 	handler := initHandleConsumerFunc(simpleHandle)
 	go receiveMessage(queueUrl, handler, option.GetConsumerByParams(opts))
@@ -215,7 +215,7 @@ func SimpleReceiveMessageAsync[Body any](
 func receiveMessage[Body, MessageAttributes any](
 	queueUrl string,
 	handler HandlerConsumerFunc[Body, MessageAttributes],
-	opt option.Consumer,
+	opt *option.Consumer,
 ) {
 	ctx := context.TODO()
 	if ctxInterrupt != nil {
@@ -247,7 +247,7 @@ func receiveMessage[Body, MessageAttributes any](
 	}
 }
 
-func prepareReceiveMessageInput(queueUrl string, opt option.Consumer) sqs.ReceiveMessageInput {
+func prepareReceiveMessageInput(queueUrl string, opt *option.Consumer) sqs.ReceiveMessageInput {
 	return sqs.ReceiveMessageInput{
 		QueueUrl:            &queueUrl,
 		AttributeNames:      []types.QueueAttributeName{types.QueueAttributeNameAll},
@@ -261,11 +261,11 @@ func prepareReceiveMessageInput(queueUrl string, opt option.Consumer) sqs.Receiv
 	}
 }
 
-func printLogInitial(opt option.Consumer) {
+func printLogInitial(opt *option.Consumer) {
 	loggerInfo(opt.DebugMode, "Run start find messages with options:", opt)
 }
 
-func handleError(attemptsReceiveMessages *int, err error, opt option.Consumer) {
+func handleError(attemptsReceiveMessages *int, err error, opt *option.Consumer) {
 	*attemptsReceiveMessages++
 	loggerErr(opt.DebugMode, "Receive message error:", err, " attempt:", attemptsReceiveMessages)
 	if *attemptsReceiveMessages >= 3 {
@@ -279,7 +279,7 @@ func processMessages[Body, MessageAttributes any](
 	queueUrl string,
 	output *sqs.ReceiveMessageOutput,
 	handler HandlerConsumerFunc[Body, MessageAttributes],
-	opt option.Consumer,
+	opt *option.Consumer,
 ) {
 	var count int
 	var mgsS, mgsF []string
@@ -294,7 +294,7 @@ func processMessage[Body, MessageAttributes any](
 	queueUrl string,
 	handler HandlerConsumerFunc[Body, MessageAttributes],
 	message types.Message,
-	opt option.Consumer,
+	opt *option.Consumer,
 ) (mgsS, mgsF []string) {
 	ctx, cancel := context.WithTimeout(context.TODO(), opt.ConsumerMessageTimeout)
 	defer cancel()
@@ -322,7 +322,7 @@ func processMessage[Body, MessageAttributes any](
 func processHandler[Body, MessageAttributes any](
 	ctx *Context[Body, MessageAttributes],
 	handler HandlerConsumerFunc[Body, MessageAttributes],
-	opt option.Consumer,
+	opt *option.Consumer,
 	channel *channelMessageProcessed,
 ) {
 	err := handler(ctx)

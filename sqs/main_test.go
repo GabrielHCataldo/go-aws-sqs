@@ -28,7 +28,7 @@ type testProducer struct {
 	name     string
 	queueUrl string
 	v        any
-	opts     []option.Producer
+	opts     []*option.Producer
 	wantErr  bool
 	async    bool
 }
@@ -37,7 +37,7 @@ type testConsumer[Body, MessageAttributes any] struct {
 	name     string
 	queueUrl string
 	handler  HandlerConsumerFunc[Body, MessageAttributes]
-	opts     []option.Consumer
+	opts     []*option.Consumer
 	wantErr  bool
 	async    bool
 }
@@ -46,7 +46,7 @@ type testSimpleConsumer[Body any] struct {
 	name     string
 	queueUrl string
 	handler  HandlerSimpleConsumerFunc[Body]
-	opts     []option.Consumer
+	opts     []*option.Consumer
 	wantErr  bool
 	async    bool
 }
@@ -54,76 +54,76 @@ type testSimpleConsumer[Body any] struct {
 type testCreateQueue struct {
 	name      string
 	queueName string
-	opts      []option.CreateQueue
+	opts      []*option.CreateQueue
 	wantErr   bool
 }
 
 type testDeleteQueue struct {
 	name     string
 	queueUrl string
-	opts     []option.Default
+	opts     []*option.Default
 	wantErr  bool
 }
 
 type testTagQueue struct {
 	name    string
 	input   TagQueueInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testSetAttributesQueue struct {
 	name    string
 	input   SetQueueAttributesInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testUntagQueue struct {
 	name    string
 	input   UntagQueueInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testPurgeQueue struct {
 	name     string
 	queueUrl string
-	opts     []option.Default
+	opts     []*option.Default
 	wantErr  bool
 }
 
 type testGetQueueUrl struct {
 	name    string
 	input   GetQueueUrlInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testGetQueueAttributes struct {
 	name    string
 	input   GetQueueAttributesInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testListQueueTags struct {
 	name     string
 	queueUrl string
-	opts     []option.Default
+	opts     []*option.Default
 	wantErr  bool
 }
 
 type testListDeadLetterSourceQueues struct {
 	name     string
 	queueUrl string
-	opts     []option.ListDeadLetterSourceQueues
+	opts     []*option.ListDeadLetterSourceQueues
 	wantErr  bool
 }
 
 type testListQueue struct {
 	name    string
-	opts    []option.ListQueues
+	opts    []*option.ListQueues
 	wantErr bool
 }
 
@@ -131,48 +131,48 @@ type testDeleteMessage struct {
 	name          string
 	queueUrl      string
 	receiptHandle string
-	opts          []option.Default
+	opts          []*option.Default
 	wantErr       bool
 }
 
 type testDeleteMessageBatch struct {
 	name    string
 	input   DeleteMessageBatchInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testChangeMessageVisibility struct {
 	name    string
 	input   ChangeMessageVisibilityInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testChangeMessageVisibilityBatch struct {
 	name    string
 	input   ChangeMessageVisibilityBatchInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testStartMessageMoveTask struct {
 	name    string
 	input   StartMessageMoveTaskInput
-	opts    []option.Default
+	opts    []*option.Default
 	wantErr bool
 }
 
 type testCancelMessageMoveTask struct {
 	name       string
 	taskHandle string
-	opts       []option.Default
+	opts       []*option.Default
 	wantErr    bool
 }
 type testListMessageMoveTask struct {
 	name      string
 	sourceArn string
-	opts      []option.ListMessageMoveTasks
+	opts      []*option.ListMessageMoveTasks
 	wantErr   bool
 }
 
@@ -222,7 +222,7 @@ func initListTestProducer() []testProducer {
 			name:     "valid request",
 			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
-			opts: []option.Producer{
+			opts: []*option.Producer{
 				option.NewProducer().SetMessageAttributes(&msgAttTest),
 				option.NewProducer().SetDelaySeconds(2 * time.Second),
 				option.NewProducer().SetDebugMode(true),
@@ -234,7 +234,7 @@ func initListTestProducer() []testProducer {
 			name:     "valid request fifo",
 			queueUrl: os.Getenv(sqsQueueTestFifoUrl),
 			v:        initTestStruct(),
-			opts: []option.Producer{
+			opts: []*option.Producer{
 				option.NewProducer().SetDebugMode(true),
 				option.NewProducer().SetHttpClient(option.HttpClient{}),
 				option.NewProducer().SetMessageAttributes(initMessageAttTest()),
@@ -248,7 +248,7 @@ func initListTestProducer() []testProducer {
 			name:     "valid request async",
 			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
-			opts: []option.Producer{
+			opts: []*option.Producer{
 				option.NewProducer().SetMessageAttributes(initTestMap()),
 				option.NewProducer().SetDebugMode(true),
 			},
@@ -265,7 +265,7 @@ func initListTestProducer() []testProducer {
 			name:     "invalid message attributes",
 			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
-			opts: []option.Producer{
+			opts: []*option.Producer{
 				option.NewProducer().SetMessageAttributes("test message string"),
 				option.NewProducer().SetDebugMode(true),
 			},
@@ -275,7 +275,7 @@ func initListTestProducer() []testProducer {
 			name:     "invalid system message attributes",
 			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
-			opts: []option.Producer{
+			opts: []*option.Producer{
 				option.NewProducer().SetMessageSystemAttributes(option.MessageSystemAttributes{
 					AWSTraceHeader: "test test",
 				}),
@@ -287,7 +287,7 @@ func initListTestProducer() []testProducer {
 			name:     "empty message attributes",
 			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
-			opts: []option.Producer{
+			opts: []*option.Producer{
 				option.NewProducer().SetMessageAttributes(struct{}{}),
 				option.NewProducer().SetDebugMode(true),
 			},
@@ -297,7 +297,7 @@ func initListTestProducer() []testProducer {
 			name:     "invalid map message attributes",
 			queueUrl: os.Getenv(sqsQueueTestUrl),
 			v:        initTestStruct(),
-			opts: []option.Producer{
+			opts: []*option.Producer{
 				option.NewProducer().SetMessageAttributes(initInvalidTestMap()),
 				option.NewProducer().SetDebugMode(true),
 			},
@@ -891,8 +891,9 @@ func initStartMessageMoveTaskInput() StartMessageMoveTaskInput {
 	}
 }
 
-func initOptionsConsumerDefault() []option.Consumer {
-	return []option.Consumer{
+func initOptionsConsumerDefault() []*option.Consumer {
+	return []*option.Consumer{
+		nil,
 		option.NewConsumer().SetDebugMode(true),
 		option.NewConsumer().SetHttpClient(option.HttpClient{}),
 		option.NewConsumer().SetConsumerMessageTimeout(5 * time.Second),
@@ -905,8 +906,9 @@ func initOptionsConsumerDefault() []option.Consumer {
 	}
 }
 
-func initOptionsConsumerWithErr() []option.Consumer {
-	return []option.Consumer{
+func initOptionsConsumerWithErr() []*option.Consumer {
+	return []*option.Consumer{
+		nil,
 		option.NewConsumer().SetDebugMode(true),
 		option.NewConsumer().SetHttpClient(option.HttpClient{}),
 		option.NewConsumer().SetConsumerMessageTimeout(0),
@@ -919,8 +921,9 @@ func initOptionsConsumerWithErr() []option.Consumer {
 	}
 }
 
-func initOptionsCreateQueue() []option.CreateQueue {
-	return []option.CreateQueue{
+func initOptionsCreateQueue() []*option.CreateQueue {
+	return []*option.CreateQueue{
+		nil,
 		option.NewCreateQueue().SetDebugMode(true),
 		option.NewCreateQueue().SetHttpClient(option.HttpClient{}),
 		option.NewCreateQueue().SetAttributes(initAttributesQueue("800")),
@@ -928,8 +931,9 @@ func initOptionsCreateQueue() []option.CreateQueue {
 	}
 }
 
-func initOptionsListQueues() []option.ListQueues {
-	return []option.ListQueues{
+func initOptionsListQueues() []*option.ListQueues {
+	return []*option.ListQueues{
+		nil,
 		option.NewListQueue().SetDebugMode(true),
 		option.NewListQueue().SetHttpClient(option.HttpClient{}),
 		option.NewListQueue().SetMaxResults(0),
@@ -938,8 +942,9 @@ func initOptionsListQueues() []option.ListQueues {
 	}
 }
 
-func initOptionsListQueuesWithErr() []option.ListQueues {
-	return []option.ListQueues{
+func initOptionsListQueuesWithErr() []*option.ListQueues {
+	return []*option.ListQueues{
+		nil,
 		option.NewListQueue().SetDebugMode(true),
 		option.NewListQueue().SetHttpClient(option.HttpClient{}),
 		option.NewListQueue().SetMaxResults(10),
@@ -948,8 +953,9 @@ func initOptionsListQueuesWithErr() []option.ListQueues {
 	}
 }
 
-func initOptionsListDeadLetterSourceQueues() []option.ListDeadLetterSourceQueues {
-	return []option.ListDeadLetterSourceQueues{
+func initOptionsListDeadLetterSourceQueues() []*option.ListDeadLetterSourceQueues {
+	return []*option.ListDeadLetterSourceQueues{
+		nil,
 		option.NewListDeadLetterSourceQueues().SetDebugMode(true),
 		option.NewListDeadLetterSourceQueues().SetHttpClient(option.HttpClient{}),
 		option.NewListDeadLetterSourceQueues().SetMaxResults(0),
@@ -957,8 +963,9 @@ func initOptionsListDeadLetterSourceQueues() []option.ListDeadLetterSourceQueues
 	}
 }
 
-func initOptionsListDeadLetterSourceQueuesWithErr() []option.ListDeadLetterSourceQueues {
-	return []option.ListDeadLetterSourceQueues{
+func initOptionsListDeadLetterSourceQueuesWithErr() []*option.ListDeadLetterSourceQueues {
+	return []*option.ListDeadLetterSourceQueues{
+		nil,
 		option.NewListDeadLetterSourceQueues().SetDebugMode(true),
 		option.NewListDeadLetterSourceQueues().SetHttpClient(option.HttpClient{}),
 		option.NewListDeadLetterSourceQueues().SetMaxResults(10),
@@ -966,23 +973,26 @@ func initOptionsListDeadLetterSourceQueuesWithErr() []option.ListDeadLetterSourc
 	}
 }
 
-func initOptionsDefault() []option.Default {
-	return []option.Default{
+func initOptionsDefault() []*option.Default {
+	return []*option.Default{
+		nil,
 		option.NewDefault().SetDebugMode(true),
 		option.NewDefault().SetHttpClient(option.HttpClient{}),
 	}
 }
 
-func initOptionsListMessageMoveTasks() []option.ListMessageMoveTasks {
-	return []option.ListMessageMoveTasks{
+func initOptionsListMessageMoveTasks() []*option.ListMessageMoveTasks {
+	return []*option.ListMessageMoveTasks{
+		nil,
 		option.NewListMessageMoveTasks().SetDebugMode(true),
 		option.NewListMessageMoveTasks().SetHttpClient(option.HttpClient{}),
 		option.NewListMessageMoveTasks().SetMaxResults(10),
 	}
 }
 
-func initOptionsListMessageMoveTasksWithErr() []option.ListMessageMoveTasks {
-	return []option.ListMessageMoveTasks{
+func initOptionsListMessageMoveTasksWithErr() []*option.ListMessageMoveTasks {
+	return []*option.ListMessageMoveTasks{
+		nil,
 		option.NewListMessageMoveTasks().SetDebugMode(true),
 		option.NewListMessageMoveTasks().SetHttpClient(option.HttpClient{}),
 		option.NewListMessageMoveTasks().SetMaxResults(0),

@@ -35,7 +35,7 @@ import (
 //
 // - *sqs.SendMessageOutput: The result of the SendMessage operation.
 // - error: An error if one occurs during the SendMessage operation.
-func SendMessage(ctx context.Context, queueUrl string, body any, opts ...option.Producer) (*sqs.SendMessageOutput, error) {
+func SendMessage(ctx context.Context, queueUrl string, body any, opts ...*option.Producer) (*sqs.SendMessageOutput, error) {
 	opt := option.GetProducerByParams(opts)
 	loggerInfo(opt.DebugMode, "getting client sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -73,15 +73,15 @@ func SendMessage(ctx context.Context, queueUrl string, body any, opts ...option.
 // # Example usage:
 //
 // SendMessageAsync(ctx, queueUrl, v, opts...)
-func SendMessageAsync(ctx context.Context, queueUrl string, body any, opts ...option.Producer) {
+func SendMessageAsync(ctx context.Context, queueUrl string, body any, opts ...*option.Producer) {
 	go sendMessageAsync(ctx, queueUrl, body, opts...)
 }
 
-func sendMessageAsync(ctx context.Context, queueUrl string, body any, opts ...option.Producer) {
+func sendMessageAsync(ctx context.Context, queueUrl string, body any, opts ...*option.Producer) {
 	_, _ = SendMessage(ctx, queueUrl, body, opts...)
 }
 
-func prepareMessageInput(queueUrl string, v any, opt option.Producer) (*sqs.SendMessageInput, error) {
+func prepareMessageInput(queueUrl string, v any, opt *option.Producer) (*sqs.SendMessageInput, error) {
 	body := util.ConvertToString(v)
 	if len(body) == 0 {
 		return nil, ErrMessageBodyEmpty
@@ -101,7 +101,7 @@ func prepareMessageInput(queueUrl string, v any, opt option.Producer) (*sqs.Send
 	}, nil
 }
 
-func getMessageAttValueByOpt(opt option.Producer) (map[string]types.MessageAttributeValue, error) {
+func getMessageAttValueByOpt(opt *option.Producer) (map[string]types.MessageAttributeValue, error) {
 	if opt.MessageAttributes == nil {
 		return nil, nil
 	}
@@ -117,7 +117,7 @@ func getMessageAttValueByOpt(opt option.Producer) (map[string]types.MessageAttri
 	return convertToMessageAttValue(t, v)
 }
 
-func getMessageSystemAttValueByOpt(opt option.Producer) map[string]types.MessageSystemAttributeValue {
+func getMessageSystemAttValueByOpt(opt *option.Producer) map[string]types.MessageSystemAttributeValue {
 	v := reflect.ValueOf(opt.MessageSystemAttributes)
 	if util.IsZeroReflect(v) {
 		return nil

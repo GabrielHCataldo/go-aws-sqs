@@ -7,28 +7,31 @@ type ListMessageMoveTasks struct {
 	MaxResults int32
 }
 
-func NewListMessageMoveTasks() ListMessageMoveTasks {
-	return ListMessageMoveTasks{}
+func NewListMessageMoveTasks() *ListMessageMoveTasks {
+	return &ListMessageMoveTasks{}
 }
 
-func (o ListMessageMoveTasks) SetDebugMode(b bool) ListMessageMoveTasks {
-	o.DebugMode = b
-	return o
+func (l *ListMessageMoveTasks) SetDebugMode(b bool) *ListMessageMoveTasks {
+	l.DebugMode = b
+	return l
 }
 
-func (o ListMessageMoveTasks) SetHttpClient(opt HttpClient) ListMessageMoveTasks {
-	o.HttpClient = &opt
-	return o
+func (l *ListMessageMoveTasks) SetHttpClient(opt HttpClient) *ListMessageMoveTasks {
+	l.HttpClient = &opt
+	return l
 }
 
-func (o ListMessageMoveTasks) SetMaxResults(i int32) ListMessageMoveTasks {
-	o.MaxResults = i
-	return o
+func (l *ListMessageMoveTasks) SetMaxResults(i int32) *ListMessageMoveTasks {
+	l.MaxResults = i
+	return l
 }
 
-func GetListMessageMoveTaskByParams(opts []ListMessageMoveTasks) ListMessageMoveTasks {
+func GetListMessageMoveTaskByParams(opts []*ListMessageMoveTasks) *ListMessageMoveTasks {
 	var result ListMessageMoveTasks
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		fillDefaultFields(opt.Default, &result.Default)
 		if opt.MaxResults > 0 {
 			result.MaxResults = opt.MaxResults
@@ -37,5 +40,5 @@ func GetListMessageMoveTaskByParams(opts []ListMessageMoveTasks) ListMessageMove
 	if result.MaxResults == 0 {
 		result.MaxResults = 1
 	}
-	return result
+	return &result
 }

@@ -88,48 +88,51 @@ type MessageSystemAttributes struct {
 	AWSTraceHeader string `json:"AWSTraceHeader,omitempty"`
 }
 
-func NewProducer() Producer {
-	return Producer{}
+func NewProducer() *Producer {
+	return &Producer{}
 }
 
-func (o Producer) SetDelaySeconds(t time.Duration) Producer {
-	o.DelaySeconds = t
-	return o
+func (p *Producer) SetDelaySeconds(t time.Duration) *Producer {
+	p.DelaySeconds = t
+	return p
 }
 
-func (o Producer) SetMessageAttributes(m any) Producer {
-	o.MessageAttributes = m
-	return o
+func (p *Producer) SetMessageAttributes(m any) *Producer {
+	p.MessageAttributes = m
+	return p
 }
 
-func (o Producer) SetMessageSystemAttributes(m MessageSystemAttributes) Producer {
-	o.MessageSystemAttributes = &m
-	return o
+func (p *Producer) SetMessageSystemAttributes(m MessageSystemAttributes) *Producer {
+	p.MessageSystemAttributes = &m
+	return p
 }
 
-func (o Producer) SetMessageDeduplicationId(s string) Producer {
-	o.MessageDeduplicationId = &s
-	return o
+func (p *Producer) SetMessageDeduplicationId(s string) *Producer {
+	p.MessageDeduplicationId = &s
+	return p
 }
 
-func (o Producer) SetMessageGroupId(s string) Producer {
-	o.MessageGroupId = &s
-	return o
+func (p *Producer) SetMessageGroupId(s string) *Producer {
+	p.MessageGroupId = &s
+	return p
 }
 
-func (o Producer) SetDebugMode(b bool) Producer {
-	o.DebugMode = b
-	return o
+func (p *Producer) SetDebugMode(b bool) *Producer {
+	p.DebugMode = b
+	return p
 }
 
-func (o Producer) SetHttpClient(opt HttpClient) Producer {
-	o.HttpClient = &opt
-	return o
+func (p *Producer) SetHttpClient(opt HttpClient) *Producer {
+	p.HttpClient = &opt
+	return p
 }
 
-func GetProducerByParams(opts []Producer) Producer {
+func GetProducerByParams(opts []*Producer) *Producer {
 	var result Producer
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		fillDefaultFields(opt.Default, &result.Default)
 		if opt.DelaySeconds > 0 {
 			result.DelaySeconds = opt.DelaySeconds
@@ -149,5 +152,5 @@ func GetProducerByParams(opts []Producer) Producer {
 			result.MessageGroupId = opt.MessageGroupId
 		}
 	}
-	return result
+	return &result
 }

@@ -319,7 +319,7 @@ type GetQueueAttributesInput struct {
 // Cross-account permissions don't apply to this action. For more information, see
 // Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func CreateQueue(ctx context.Context, queueName string, opts ...option.CreateQueue) (*sqs.CreateQueueOutput, error) {
+func CreateQueue(ctx context.Context, queueName string, opts ...*option.CreateQueue) (*sqs.CreateQueueOutput, error) {
 	opt := option.GetCreateQueueByParams(opts)
 	loggerInfo(opt.DebugMode, "creating queue sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -352,7 +352,7 @@ func CreateQueue(ctx context.Context, queueName string, opts ...option.CreateQue
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) (*sqs.TagQueueOutput, error) {
+func TagQueue(ctx context.Context, input TagQueueInput, opts ...*option.Default) (*sqs.TagQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "tag queue sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -384,7 +384,7 @@ func TagQueue(ctx context.Context, input TagQueueInput, opts ...option.Default) 
 //   - To remove the ability to change queue permissions, you must deny permission
 //     to the AddPermission , RemovePermission , and SetQueueAttributes actions in
 //     your IAM policy.
-func SetQueueAttributes(ctx context.Context, input SetQueueAttributesInput, opts ...option.Default) (
+func SetQueueAttributes(ctx context.Context, input SetQueueAttributesInput, opts ...*option.Default) (
 	*sqs.SetQueueAttributesOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "set attributes queue sqs..")
@@ -407,7 +407,7 @@ func SetQueueAttributes(ctx context.Context, input SetQueueAttributesInput, opts
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...option.Default) (*sqs.UntagQueueOutput, error) {
+func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...*option.Default) (*sqs.UntagQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "untag queue sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -430,7 +430,7 @@ func UntagQueue(ctx context.Context, input UntagQueueInput, opts ...option.Defau
 // size. Messages sent to the queue before you call PurgeQueue might be received
 // but are deleted within the next minute. Messages sent to the queue after you
 // call PurgeQueue might be deleted while the queue is being purged.
-func PurgeQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.PurgeQueueOutput, error) {
+func PurgeQueue(ctx context.Context, queueUrl string, opts ...*option.Default) (*sqs.PurgeQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "purge queue sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -456,7 +456,7 @@ func PurgeQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*
 // this action. For more information, see Grant cross-account permissions to a
 // role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide. The delete operation uses the HTTP GET verb.
-func DeleteQueue(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.DeleteQueueOutput, error) {
+func DeleteQueue(ctx context.Context, queueUrl string, opts ...*option.Default) (*sqs.DeleteQueueOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "deleting queue sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -477,7 +477,7 @@ func DeleteQueue(ctx context.Context, queueUrl string, opts ...option.Default) (
 // access the queue. For more information about shared queue access, see
 // AddPermission or see Allow Developers to Write Messages to a Shared Queue (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-writing-an-sqs-policy.html#write-messages-to-shared-queue)
 // in the Amazon SQS Developer Guide.
-func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...option.Default) (*sqs.GetQueueUrlOutput, error) {
+func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...*option.Default) (*sqs.GetQueueUrlOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "get queue url sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -496,7 +496,7 @@ func GetQueueUrl(ctx context.Context, input GetQueueUrlInput, opts ...option.Def
 // GetQueueAttributes Gets attributes for the specified queue.
 // To determine whether a queue is FIFO (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues.html)
 // you can check whether QueueName ends with the .fifo suffix.
-func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts ...option.Default) (
+func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts ...*option.Default) (
 	*sqs.GetQueueAttributesOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "get queue attributes sqs..")
@@ -525,7 +525,7 @@ func GetQueueAttributes(ctx context.Context, input GetQueueAttributesInput, opts
 // page of results. Cross-account permissions don't apply to this action. For more
 // information, see Grant cross-account permissions to a role and a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func ListQueues(ctx context.Context, opts ...option.ListQueues) (*sqs.ListQueuesOutput, error) {
+func ListQueues(ctx context.Context, opts ...*option.ListQueues) (*sqs.ListQueuesOutput, error) {
 	opt := option.GetListQueuesByParams(opts)
 	loggerInfo(opt.DebugMode, "list queue tags sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -548,7 +548,7 @@ func ListQueues(ctx context.Context, opts ...option.ListQueues) (*sqs.ListQueues
 // action. For more information, see Grant cross-account permissions to a role and
 // a username (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-customer-managed-policy-examples.html#grant-cross-account-permissions-to-role-and-user-name)
 // in the Amazon SQS Developer Guide.
-func ListQueueTags(ctx context.Context, queueUrl string, opts ...option.Default) (*sqs.ListQueueTagsOutput, error) {
+func ListQueueTags(ctx context.Context, queueUrl string, opts ...*option.Default) (*sqs.ListQueueTagsOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "list queue tags sqs..")
 	sqsClient := client.GetClient(ctx)
@@ -574,7 +574,7 @@ func ListQueueTags(ctx context.Context, queueUrl string, opts ...option.Default)
 // information about using dead-letter queues, see Using Amazon SQS Dead-Letter
 // Queues (https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)
 // in the Amazon SQS Developer Guide.
-func ListDeadLetterSourceQueues(ctx context.Context, queueUrl string, opts ...option.ListDeadLetterSourceQueues) (
+func ListDeadLetterSourceQueues(ctx context.Context, queueUrl string, opts ...*option.ListDeadLetterSourceQueues) (
 	*sqs.ListDeadLetterSourceQueuesOutput, error) {
 	opt := option.GetListDeadLetterSourceQueuesByParams(opts)
 	loggerInfo(opt.DebugMode, "listing dead letter source queues..")

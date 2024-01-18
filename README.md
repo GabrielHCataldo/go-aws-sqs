@@ -3,7 +3,7 @@ AWS SQS Template
 <!--suppress ALL -->
 <img align="right" src="gopher-sqs.png" alt="">
 
-[![Project status](https://img.shields.io/badge/version-v1.0.1-vividgreen.svg)](https://github.com/GabrielHCataldo/go-aws-sqs-template/releases/tag/v1.0.1)
+[![Project status](https://img.shields.io/badge/version-v1.0.2-vividgreen.svg)](https://github.com/GabrielHCataldo/go-aws-sqs-template/releases/tag/v1.0.2)
 [![Go Report Card](https://goreportcard.com/badge/github.com/GabrielHCataldo/go-aws-sqs-template)](https://goreportcard.com/report/github.com/GabrielHCataldo/go-aws-sqs-template)
 [![Coverage Status](https://coveralls.io/repos/GabrielHCataldo/go-aws-sqs-template/badge.svg?branch=main&service=github)](https://coveralls.io/github/GabrielHCataldo/go-aws-sqs-template?branch=main)
 [![Open Source Helpers](https://www.codetriage.com/gabrielhcataldo/go-aws-sqs-template/badges/users.svg)](https://www.codetriage.com/gabrielhcataldo/go-aws-sqs-template)

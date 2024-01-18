@@ -121,7 +121,7 @@ type StartMessageMoveTaskInput struct {
 // returned to you during a subsequent receive request. You should ensure that your
 // application is idempotent, so that receiving a message more than once does not
 // cause issues.
-func DeleteMessage(ctx context.Context, queueUrl, receiptHandle string, opts ...option.Default) (
+func DeleteMessage(ctx context.Context, queueUrl, receiptHandle string, opts ...*option.Default) (
 	*sqs.DeleteMessageOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "deleting message..")
@@ -143,7 +143,7 @@ func DeleteMessage(ctx context.Context, queueUrl, receiptHandle string, opts ...
 // individually in the response. Because the batch request can result in a
 // combination of successful and unsuccessful actions, you should check for batch
 // errors even when the call returns an HTTP status code of 200 .
-func DeleteMessageBatch(ctx context.Context, input DeleteMessageBatchInput, opts ...option.Default) (
+func DeleteMessageBatch(ctx context.Context, input DeleteMessageBatchInput, opts ...*option.Default) (
 	*sqs.DeleteMessageBatchOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "deleting messages batch..")
@@ -201,7 +201,7 @@ func DeleteMessageBatch(ctx context.Context, input DeleteMessageBatchInput, opts
 // message after it is received, the visibility timeout for the message reverts to
 // the original timeout value (not to the value you set using the
 // ChangeMessageVisibility action) the next time the message is received.
-func ChangeMessageVisibility(ctx context.Context, input ChangeMessageVisibilityInput, opts ...option.Default) (
+func ChangeMessageVisibility(ctx context.Context, input ChangeMessageVisibilityInput, opts ...*option.Default) (
 	*sqs.ChangeMessageVisibilityOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "changing messages visibility..")
@@ -226,7 +226,7 @@ func ChangeMessageVisibility(ctx context.Context, input ChangeMessageVisibilityI
 // request can result in a combination of successful and unsuccessful actions, you
 // should check for batch errors even when the call returns an HTTP status code of
 // 200 .
-func ChangeMessageVisibilityBatch(ctx context.Context, input ChangeMessageVisibilityBatchInput, opts ...option.Default) (
+func ChangeMessageVisibilityBatch(ctx context.Context, input ChangeMessageVisibilityBatchInput, opts ...*option.Default) (
 	*sqs.ChangeMessageVisibilityBatchOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "changing message visibility batch..")
@@ -257,7 +257,7 @@ func ChangeMessageVisibilityBatch(ctx context.Context, input ChangeMessageVisibi
 //     redrive.
 //   - Only one active message movement task is supported per queue at any given
 //     time.
-func StartMessageMoveTask(ctx context.Context, input StartMessageMoveTaskInput, opts ...option.Default) (
+func StartMessageMoveTask(ctx context.Context, input StartMessageMoveTaskInput, opts ...*option.Default) (
 	*sqs.StartMessageMoveTaskOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "starting message move task..")
@@ -287,7 +287,7 @@ func StartMessageMoveTask(ctx context.Context, input StartMessageMoveTaskInput, 
 //   - Currently, only standard queues are supported.
 //   - Only one active message movement task is supported per queue at any given
 //     time.
-func CancelMessageMoveTask(ctx context.Context, taskHandle string, opts ...option.Default) (
+func CancelMessageMoveTask(ctx context.Context, taskHandle string, opts ...*option.Default) (
 	*sqs.CancelMessageMoveTaskOutput, error) {
 	opt := option.GetDefaultByParams(opts)
 	loggerInfo(opt.DebugMode, "canceling message move task..")
@@ -313,7 +313,7 @@ func CancelMessageMoveTask(ctx context.Context, taskHandle string, opts ...optio
 //   - Currently, only standard queues are supported.
 //   - Only one active message movement task is supported per queue at any given
 //     time.
-func ListMessageMoveTasks(ctx context.Context, sourceArn string, opts ...option.ListMessageMoveTasks) (
+func ListMessageMoveTasks(ctx context.Context, sourceArn string, opts ...*option.ListMessageMoveTasks) (
 	*sqs.ListMessageMoveTasksOutput, error) {
 	opt := option.GetListMessageMoveTaskByParams(opts)
 	loggerInfo(opt.DebugMode, "listing message move tasks..")
